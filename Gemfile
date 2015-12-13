@@ -30,6 +30,9 @@ gem 'unicorn'
 gem 'sinatra' # Used for the sidekiq UI
 gem 'airbrake'
 
+# Payment processing
+gem 'stripe'
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 

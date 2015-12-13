@@ -245,6 +245,9 @@ GEM
       actionpack (>= 3.0)
       activesupport (>= 3.0)
       sprockets (>= 2.8, < 4.0)
+    stripe (1.31.0)
+      json (~> 1.8.1)
+      rest-client (~> 1.4)
     thor (0.19.1)
     thread_safe (0.3.4)
     tilt (1.4.1)
@@ -313,9 +316,13 @@ DEPENDENCIES
   sinatra
   spring
   spring-commands-rspec
+  stripe
   timecop
   twilio-ruby
   unicorn
   versionist
   web-console (~> 2.0)
   webmock
+
+BUNDLED WITH
+   1.10.6
