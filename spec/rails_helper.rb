@@ -44,7 +44,6 @@ RSpec.configure do |config|
     stub_request(:any, /#{Integration::Here::DOMAIN}/).to_rack(FakeHere)
     stub_request(:any, /#{Integration::Sunlight::DOMAIN}/).to_rack(FakeSunlight)
     stub_request(:any, /#{Integration::RepsWithUs::DOMAIN}/).to_rack(FakeRepsWithUs)
-    stub_request(:any, /api.stripe.com/).to_rack(FakeStripe)
   end
 
   config.before(:suite) do

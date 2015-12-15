@@ -14,8 +14,8 @@ class V1::PaymentsController < V1::BaseController
 
   def payment_params
     defaults = {
-      currency: 'usd',
-      description: 'donation from test@example.com'
+      'currency' => 'usd',
+      'description' => 'donation from test@example.com'
     }
 
     defaults.merge(params.require(:payment).permit(:amount, :source))
