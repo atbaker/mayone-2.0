@@ -6,6 +6,7 @@ describe Integration::NationBuilder do
     @person_id = 57126
     @event_id = 5
     @rsvp_id = 13
+    @donation_id = 69754
   end
 
   describe "#query_people_by_email" do
@@ -72,6 +73,14 @@ describe Integration::NationBuilder do
       response = Integration::NationBuilder.create_or_update_person(attributes: {first_name: 'Fred'})
       expect(response).to have_key('id')
       expect(response['id']).to eq(@person_id)
+    end
+  end
+
+  describe "#create_donation" do
+    it "responds with a parsed donation object" do
+      response = Integration::NationBuilder.create_donation(amount: 400, person_id: 84961)
+      expect(response).to have_key('id')
+      expect(response['id']).to eq(@donation_id)
     end
   end
 

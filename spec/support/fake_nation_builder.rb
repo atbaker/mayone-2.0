@@ -7,6 +7,10 @@ class FakeNationBuilder < Sinatra::Base
     json_response 200, 'lists.json'
   end
 
+  post '/api/v1/donations' do
+    json_response 200, 'create_donation.json'
+  end
+
   put '/api/v1/people/push' do
     json_response 200, 'person.json'
   end
@@ -36,6 +40,6 @@ class FakeNationBuilder < Sinatra::Base
   def json_response(response_code, file_name)
     content_type :json
     status response_code
-    File.open(File.dirname(__FILE__) + '/fixtures/' + file_name, 'rb').read
+    File.open(File.dirname(__FILE__) + '/fixtures/nation_builder/' + file_name, 'rb').read
   end
 end
