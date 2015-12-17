@@ -5,7 +5,13 @@ describe V1::PaymentsController, type: :controller do
   describe "POST create" do
     it "works" do
       stub_stripe_charge(amount: 400, source: 'test token', charge_id: 'test id')
-      post :create, payment: { amount: 400, source: 'test token' }
+      allow(NbPersonPushJob).to receive(:perform_later)
+
+      post :create, payment: { amount: 400, source: 'test token' },
+        person: { email: 'user@example.com' }
+
+      expect(NbPersonPushJob).to have_received(:perform_later).
+        with(email: "user@example.com", donation_amount: "400")
       expect(json(response)['charge_id']).to eq 'test id'
     end
   end

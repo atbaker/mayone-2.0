@@ -63,12 +63,6 @@ class NationBuilder
     end
   end
 
-  def self.create_person_and_donation(amount:, person_attributes: {}, person_id: nil)
-    raise ArgumentError, 'missing :person_id or :person_attributes' if person_id.blank? && (person_attributes.nil? || person_attributes.empty?)
-    person_id ||= create_or_update_person(attributes: person_attributes)['id']
-    create_donation(amount: amount, person_id: person_id)
-  end
-
   def self.create_person_and_rsvp(event_id:, person_attributes: {}, person_id: nil)
     raise ArgumentError, 'missing :person_id or :person_attributes' if person_id.blank? && (person_attributes.nil? || person_attributes.empty?)
     person_id ||= create_or_update_person(attributes: person_attributes)['id']
@@ -95,7 +89,10 @@ class NationBuilder
 
   def self.create_donation(amount:, person_id:)
     rescue_oauth_errors do
-      body = { 'donation': { donor_id: person_id, amount_in_cents: amount } }
+      body = { 'donation': { donor_id: person_id,
+                             amount_in_cents: amount,
+                             payment_type_name: 'Square',
+                             succeeded_at: Time.now } }
       response = request_handler(endpoint_path: ENDPOINTS[:donations], body: body, method: 'post')
       response['donation']
     end

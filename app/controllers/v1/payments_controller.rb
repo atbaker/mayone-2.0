@@ -4,6 +4,8 @@ class V1::PaymentsController < V1::BaseController
 
     charge = Stripe::Charge.create(payment_params)
 
+    Person.create_or_update(person_params)
+
     render json: { charge_id: charge.id }
 
   rescue Stripe::CardError => e
@@ -11,6 +13,12 @@ class V1::PaymentsController < V1::BaseController
   end
 
   private
+
+  def person_params
+    person = params.require(:person).permit(Person::PERMITTED_PUBLIC_FIELDS)
+    payment = { remote_fields: { donation_amount: payment_params['amount'] } }
+    person.deep_merge(payment)
+  end
 
   def payment_params
     defaults = {

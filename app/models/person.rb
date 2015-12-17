@@ -49,7 +49,7 @@ class Person < ActiveRecord::Base
   delegate :update_location, :district, :state, to: :location
 
   FIELDS_ALSO_ON_NB = %w[email first_name last_name is_volunteer phone]
-  PERMITTED_PUBLIC_FIELDS = [:email, :phone, :first_name, :last_name, :address, :city, :zip, :is_volunteer, remote_fields: [:event_id, :skills, tags: []]]
+  PERMITTED_PUBLIC_FIELDS = [:email, :phone, :first_name, :last_name, :address, :city, :zip, :is_volunteer, remote_fields: [:event_id, :donation_amount, :employer, :occupation, :skills, tags: []]]
   LOCATION_ATTRIBUTES = [:address, :zip, :city]
   DEFAULT_TARGET_COUNT = 100
 
@@ -174,7 +174,7 @@ class Person < ActiveRecord::Base
   end
 
   def merge!(other)
-    raise "cannot merge wit a new record" if other.new_record?
+    raise "cannot merge with a new record" if other.new_record?
     raise "cannot merge with myself" if other == self
 
     #merge associations
