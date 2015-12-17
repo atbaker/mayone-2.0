@@ -33,7 +33,7 @@ describe ExternalCountFetcher do
         expect(count_fetcher.house_supporters.ttl).to eq(ExternalCountFetcher::REDIS_EXPIRE_SECONDS)
       end
       Timecop.freeze do
-        new_time = (ExternalCountFetcher::REDIS_EXPIRE_SECONDS-20.minutes.to_i)
+        new_time = (ExternalCountFetcher::REDIS_EXPIRE_SECONDS/3)
         expect(count_fetcher.house_supporters.ttl).to be_within(1).of(new_time)
       end
     end
