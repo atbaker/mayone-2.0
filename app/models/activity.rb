@@ -18,6 +18,7 @@ class Activity < ActiveRecord::Base
   DEFAULT_TEMPLATE_IDS = {
     rsvp: 'rsvp',
     call_congress: 'call-congress',
-    record_message: 'record-message'
+    record_message: 'record-message',
+    donate: 'donate'
   }
 end

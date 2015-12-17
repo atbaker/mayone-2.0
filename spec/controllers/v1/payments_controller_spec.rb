@@ -3,31 +3,44 @@ require 'rails_helper'
 describe V1::PaymentsController, type: :controller do
 
   describe "POST create" do
-    it "works" do
-      stub_stripe_charge(amount: 400, source: 'test token', charge_id: 'test id')
-      allow(NbPersonPushJob).to receive(:perform_later)
+    it "charges stripe" do
+      allow(Stripe::Charge).to receive(:create)
+      person = spy('person')
+      allow(Person).to receive(:create_or_update).and_return(person)
 
-      post :create, payment: { amount: 400, source: 'test token' },
+      post :create, amount: 400, source: 'test token', template_id: 'donate',
         person: { email: 'user@example.com' }
 
-      expect(NbPersonPushJob).to have_received(:perform_later).
-        with(email: "user@example.com", donation_amount: "400")
-      expect(json(response)['charge_id']).to eq 'test id'
+      expect(Stripe::Charge).to have_received(:create).
+        with(hash_including('amount'=>'400', 'source'=>'test token', 'currency'=>'usd'))
+    end
+
+    it "creates/updates person with donation info" do
+      allow(Stripe::Charge).to receive(:create)
+      person = spy('person')
+      allow(Person).to receive(:create_or_update).and_return(person)
+
+      post :create, amount: 400, source: 'test token', template_id: 'donate',
+        person: { email: 'user@example.com' }
+
+      expect(Person).to have_received(:create_or_update).
+        with(email: 'user@example.com', remote_fields: { donation_amount: '400' })
+    end
+
+    it "creates donate action on person" do
+      allow(Stripe::Charge).to receive(:create)
+      person = spy('person')
+      allow(Person).to receive(:create_or_update).and_return(person)
+
+      post :create, amount: 400, source: 'test token', template_id: 'donate',
+        person: { email: 'user@example.com' }
+
+      expect(person).to have_received(:create_action).with(template_id: 'donate')
     end
   end
 
-end
+  def json(response)
+    JSON.parse(response.body)
+  end
 
-def json(response)
-  JSON.parse(response.body)
-end
-
-def stub_stripe_charge(amount: 100, source: 'token', charge_id: 'id')
-  charge = double('charge', id: charge_id)
-  allow(Stripe::Charge).to receive(:create).
-    with(hash_including(
-      'amount' => amount.to_s,
-      'source' => source,
-      'currency' => 'usd')).
-    and_return(charge)
 end
