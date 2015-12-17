@@ -297,7 +297,7 @@ describe Person do
       end
     end
     context "updating existing user" do
-      let(:person) { FactoryGirl.create(:person) }
+      let(:person) { FactoryGirl.create(:person, :with_nb_callback) }
       before { expect(person).to receive(:update_nation_builder).and_call_original }
 
       it "sends remote_fields to NationBuilder if present" do

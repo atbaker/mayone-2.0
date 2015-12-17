@@ -38,7 +38,7 @@ class Person < ActiveRecord::Base
 
   before_create :generate_uuid, unless: :uuid?
   before_save :downcase_email
-  after_save :update_nation_builder, :save_location
+  after_save :update_nation_builder, :save_location, unless: :skip_nb_update
 
   scope :identify, -> identifier {
     includes(:actions)
@@ -54,7 +54,7 @@ class Person < ActiveRecord::Base
   DEFAULT_TARGET_COUNT = 100
 
   SUPPLAMENTRY_ATTRIBUTES = [:remote_fields] + LOCATION_ATTRIBUTES
-  attr_accessor *SUPPLAMENTRY_ATTRIBUTES
+  attr_accessor *SUPPLAMENTRY_ATTRIBUTES, :skip_nb_update
 
   def self.create_or_update(person_params)
     search_values = person_params.symbolize_keys.slice(:uuid, :email, :phone).compact
