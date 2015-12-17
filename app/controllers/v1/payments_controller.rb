@@ -17,7 +17,9 @@ class V1::PaymentsController < V1::BaseController
   private
 
   def action_params
-    params.permit(:template_id, :utm_source, :utm_medium, :utm_campaign, :source_url)
+    amount = payment_params['amount'].to_f/100.0
+    params.permit(:template_id, :utm_source, :utm_medium, :utm_campaign, :source_url).
+      merge(donation_amount: amount)
   end
 
   def person_params
