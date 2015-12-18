@@ -3,7 +3,21 @@ require 'rails_helper'
 describe V1::PaymentsController, type: :controller do
 
   describe "POST create" do
-    it "charges stripe" do
+    it "creates subscription if recurring == true" do
+      allow(Stripe::Customer).to receive(:create)
+      person = spy('person')
+      allow(Person).to receive(:create_or_update).and_return(person)
+
+      post :create, amount: 400, source: 'test token', template_id: 'donate',
+        recurring: true, person: { email: 'user@example.com' }
+
+      expect(Stripe::Customer).to have_received(:create).
+        with(plan: 'one_dollar_monthly',
+         email: 'user@example.com',
+         quantity: 4,
+         'source' => 'test token')
+    end
+    it "charges stripe once if recurring is falsy" do
       allow(Stripe::Charge).to receive(:create)
       person = spy('person')
       allow(Person).to receive(:create_or_update).and_return(person)
@@ -12,7 +26,7 @@ describe V1::PaymentsController, type: :controller do
         person: { email: 'user@example.com' }
 
       expect(Stripe::Charge).to have_received(:create).
-        with(hash_including('amount'=>'400', 'source'=>'test token', 'currency'=>'usd'))
+        with(hash_including('amount' => '400', 'source' => 'test token', currency: 'usd'))
     end
 
     it "creates/updates person with donation info" do
@@ -24,7 +38,7 @@ describe V1::PaymentsController, type: :controller do
         person: { email: 'user@example.com' }
 
       expect(Person).to have_received(:create_or_update).
-        with(email: 'user@example.com', remote_fields: { donation_amount: '400' })
+        with(email: 'user@example.com', remote_fields: { donation_amount: 400 })
     end
 
     it "creates donate action on person" do
