@@ -359,7 +359,8 @@ describe Person do
         utm_source: 'expected_source',
         utm_medium: 'expected_medium',
         utm_campaign: 'expected_campaign',
-        source_url: 'expected_url'
+        source_url: 'expected_url',
+        donation_amount_in_cents: 300
       }
 
       person.create_action(action_params.merge(template_id: activity.template_id))

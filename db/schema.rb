@@ -11,25 +11,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151015120755) do
+ActiveRecord::Schema.define(version: 20151218172510) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "actions", force: :cascade do |t|
-    t.integer  "person_id",       null: false
-    t.integer  "activity_id",     null: false
-    t.datetime "created_at",      null: false
-    t.datetime "updated_at",      null: false
+    t.integer  "person_id",                null: false
+    t.integer  "activity_id",              null: false
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
     t.string   "utm_source"
     t.string   "utm_medium"
     t.string   "utm_campaign"
     t.string   "source_url"
-    t.float    "donation_amount"
+    t.integer  "donation_amount_in_cents"
   end
 
   add_index "actions", ["activity_id"], name: "index_actions_on_activity_id", using: :btree
-  add_index "actions", ["donation_amount"], name: "index_actions_on_donation_amount", using: :btree
+  add_index "actions", ["donation_amount_in_cents"], name: "index_actions_on_donation_amount_in_cents", using: :btree
   add_index "actions", ["person_id", "activity_id"], name: "index_actions_on_person_id_and_activity_id", using: :btree
   add_index "actions", ["person_id"], name: "index_actions_on_person_id", using: :btree
 

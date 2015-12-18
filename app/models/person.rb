@@ -169,7 +169,7 @@ class Person < ActiveRecord::Base
     params.symbolize_keys!
     if activity = Activity.find_or_create_by(template_id: params[:template_id])
       action_params = params.slice(:utm_source, :utm_medium, :utm_campaign,
-                                   :source_url, :donation_amount)
+                                   :source_url, :donation_amount_in_cents)
       actions.create!(action_params.merge(activity: activity))
     end
   end

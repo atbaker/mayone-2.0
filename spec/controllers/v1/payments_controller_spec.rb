@@ -35,8 +35,8 @@ describe V1::PaymentsController, type: :controller do
       post :create, amount: 400, source: 'test token', template_id: 'donate',
         person: { email: 'user@example.com' }
 
-      expect(person).to have_received(:create_action).with(template_id: 'donate',
-                                                           donation_amount: 4.0)
+      expect(person).to have_received(:create_action).
+        with(template_id: 'donate', donation_amount_in_cents: 400)
     end
   end
 
