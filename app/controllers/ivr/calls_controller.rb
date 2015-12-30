@@ -1,4 +1,5 @@
 class Ivr::CallsController < Ivr::ApplicationController
+  require 'twilio-ruby'
 
   # Public: initiates the call process via a request from twillio
   #

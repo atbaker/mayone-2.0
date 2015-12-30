@@ -1,4 +1,5 @@
 class Integration::Twilio
+  require 'twilio-ruby'
 
   APP_PHONE_NUMBERS = {
     call_congress: ENV['TWILIO_APP_PHONE_NUMBER'],

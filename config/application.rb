@@ -55,8 +55,4 @@ module Mayday
   end
 end
 
-module Integration  #prevent circular dependencies
-end
-
-
 puts "Rails loaded in #{Time.now-rails_loading_start}s running Ruby #{RUBY_VERSION}" if Rails.env.test? || Rails.env.development?

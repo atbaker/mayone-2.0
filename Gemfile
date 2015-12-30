@@ -1,4 +1,5 @@
 source 'https://rubygems.org'
+ruby '2.2.4'
 
 gem 'rails', '4.2.0'
 gem 'pg'
@@ -6,15 +7,16 @@ gem 'redis'
 gem 'redis-objects'
 gem 'redis-rails'
 gem 'database_cleaner'
-gem 'phony_rails'
+gem 'phony_rails', :require => false
 
 # Active Job
 gem 'sidekiq'
+gem 'sinatra' # Used for the sidekiq UI
 
 # API consuming
-gem 'rest-client'
+gem 'rest-client', :require => false
 gem 'oauth2'
-gem 'twilio-ruby'
+gem 'twilio-ruby', :require => false
 
 # API publishing
 gem 'rails-api'
@@ -24,10 +26,11 @@ gem 'rack-cors', :require => 'rack/cors'
 gem 'oj'
 
 # SysOps + Monitoring
-gem 'rails_12factor', group: :production # Heroku-required
-gem 'newrelic_rpm'
+group :production do
+  gem 'rails_12factor'  # Heroku-required
+  gem 'newrelic_rpm'
+end
 gem 'unicorn'
-gem 'sinatra' # Used for the sidekiq UI
 gem 'airbrake'
 
 # Payment processing
@@ -63,4 +66,3 @@ group :test do
   gem 'timecop'
 end
 
-ruby '2.2.2'

@@ -1,3 +1,4 @@
+require 'phony_rails'
 # == Schema Information
 #
 # Table name: people

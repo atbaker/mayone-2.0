@@ -1,12 +1,13 @@
 language: ruby
 sudo: false
 rvm:
-- 2.2.2
+- 2.2.4
 addons:
   postgresql: '9.3'
 before_script:
 - psql -c 'create database mayday_test;' -U postgres
 - cp config/database.yml.example config/database.yml
+- bundle exec rake db:test:prepare
 notifications:
   slack:
     secure: Ch4pUyN0ynOfaRQ9rjm4Qnu6w7c87P/yofZXNcSJ6o1FOC9VQkzurvs1sDEOxYsHm8voMGSzDd+fiEJNQeBXet3LhwZAHQbTkWihMNNHAYdN7P5oI8j7qEl6R9lhaGnTyjBUrvlXS1cK1fWYQYjx8KEgP+TUEZ7aGdiQBjGaQVE=
