@@ -1,5 +1,17 @@
 class V1::PaymentsController < V1::BaseController
 
+  # Receives person, payment and action attributes. Creates/updates a person
+  # creates an action, and creates a stripe single or recurring payment
+  # Params:
+  #  * person - hash - Person::PERMITTED_PUBLIC_FIELDS
+  #  * amount - int - donation amount in cents
+  #  * recurring - true - pass true if recurrning donation
+  #  * source - [UNCLEAR WHAT THIS IS]
+  #  * template_id - action template_id
+  #  * utm_source - action utm_source
+  #  * utm_medium - action utm_medium
+  #  * utm_campaign - action utm_campaign
+  #  * source_url - action source_url
   def create
 
     person = Person.create_or_update(person_params)
