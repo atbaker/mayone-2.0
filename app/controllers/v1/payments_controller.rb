@@ -2,13 +2,17 @@ class V1::PaymentsController < V1::BaseController
 
   def create
 
+    person = Person.create_or_update(person_params)
+
     if recurring?
-      Stripe::Customer.create(subscription_params)
+      response = Stripe::Customer.create(subscription_params)
+      customer_id = response.id
+      subscription_id = response.subscriptions.data.first.id
+      person.update(stripe_id: customer_id)
+      person.create_subscription(remote_id: subscription_id)
     else
       Stripe::Charge.create(payment_params)
     end
-
-    person = Person.create_or_update(person_params)
 
     person.create_action(action_params.symbolize_keys)
 

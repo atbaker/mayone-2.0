@@ -211,6 +211,8 @@ GEM
       ansi
       ast
     safe_yaml (1.0.4)
+    shoulda-matchers (3.0.1)
+      activesupport (>= 4.0.0)
     sidekiq (4.0.1)
       concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
@@ -304,6 +306,7 @@ DEPENDENCIES
   redis-rails
   rest-client
   rspec-rails
+  shoulda-matchers
   sidekiq
   sinatra
   spring

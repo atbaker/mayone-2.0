@@ -64,5 +64,6 @@ group :test do
   gem 'webmock'
   gem 'fakeredis', :require => 'fakeredis/rspec'
   gem 'timecop'
+  gem 'shoulda-matchers'
 end
 

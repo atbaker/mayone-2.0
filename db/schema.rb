@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151218172510) do
+ActiveRecord::Schema.define(version: 20151231182833) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -194,6 +194,7 @@ ActiveRecord::Schema.define(version: 20151218172510) do
     t.string   "last_name"
     t.string   "uuid"
     t.boolean  "is_volunteer"
+    t.string   "stripe_id"
   end
 
   add_index "people", ["email"], name: "index_people_on_email", unique: true, using: :btree
@@ -222,6 +223,13 @@ ActiveRecord::Schema.define(version: 20151218172510) do
 
   add_index "states", ["abbrev"], name: "index_states_on_abbrev", unique: true, using: :btree
   add_index "states", ["name"], name: "index_states_on_name", unique: true, using: :btree
+
+  create_table "subscriptions", force: :cascade do |t|
+    t.integer "person_id", null: false
+    t.string  "remote_id", null: false
+  end
+
+  add_index "subscriptions", ["person_id"], name: "index_subscriptions_on_person_id", using: :btree
 
   create_table "targets", force: :cascade do |t|
     t.integer  "campaign_id"
@@ -262,6 +270,7 @@ ActiveRecord::Schema.define(version: 20151218172510) do
   add_foreign_key "locations", "states"
   add_foreign_key "sponsorships", "bills"
   add_foreign_key "sponsorships", "legislators"
+  add_foreign_key "subscriptions", "people"
   add_foreign_key "targets", "campaigns"
   add_foreign_key "targets", "legislators"
   add_foreign_key "zip_codes", "states"

@@ -15,6 +15,7 @@ require 'phony_rails'
 #
 
 class Person < ActiveRecord::Base
+  has_one :subscription
   has_one :location, dependent: :destroy
   has_one :district, through: :location
   has_one :representative, through: :district
