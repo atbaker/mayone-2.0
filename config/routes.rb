@@ -10,6 +10,7 @@ Rails.application.routes.draw do
       post :targets, on: :collection, action: :targets
       get '/:identifier', on: :collection, action: :show, constraints: { identifier: /[^\/]+/} #allow email as identifier
     end
+    resources :payments,    only: :create
     resources :stats,       only: :index
     resources :actions,     only: :create do
       get :count, on: :collection

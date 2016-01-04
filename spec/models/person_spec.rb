@@ -297,7 +297,7 @@ describe Person do
       end
     end
     context "updating existing user" do
-      let(:person) { FactoryGirl.create(:person) }
+      let(:person) { FactoryGirl.create(:person, :with_nb_callback) }
       before { expect(person).to receive(:update_nation_builder).and_call_original }
 
       it "sends remote_fields to NationBuilder if present" do
@@ -359,7 +359,8 @@ describe Person do
         utm_source: 'expected_source',
         utm_medium: 'expected_medium',
         utm_campaign: 'expected_campaign',
-        source_url: 'expected_url'
+        source_url: 'expected_url',
+        donation_amount_in_cents: 300
       }
 
       person.create_action(action_params.merge(template_id: activity.template_id))

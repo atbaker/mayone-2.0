@@ -6,6 +6,7 @@ class NationBuilder
     list_count_page: '/supporter_counts_for_website',
     event:           '/api/v1/sites/mayday/pages/events/%s',
     events:          '/api/v1/sites/mayday/pages/events',
+    donations:       '/api/v1/donations',
     people:          '/api/v1/people/push',
     people_by_email: '/api/v1/people/match?email=%s',
     rsvps_by_event:  '/api/v1/sites/mayday/pages/events/%s/rsvps'
@@ -83,6 +84,17 @@ class NationBuilder
       Rails.logger.warn 'finished create or update person with params'
 
       response
+    end
+  end
+
+  def self.create_donation(amount:, person_id:)
+    rescue_oauth_errors do
+      body = { 'donation': { donor_id: person_id,
+                             amount_in_cents: amount,
+                             payment_type_name: 'Square',
+                             succeeded_at: Time.now } }
+      response = request_handler(endpoint_path: ENDPOINTS[:donations], body: body, method: 'post')
+      response['donation']
     end
   end
 

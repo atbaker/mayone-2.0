@@ -15,6 +15,7 @@ require 'phony_rails'
 #
 
 class Person < ActiveRecord::Base
+  has_one :subscription
   has_one :location, dependent: :destroy
   has_one :district, through: :location
   has_one :representative, through: :district
@@ -39,7 +40,7 @@ class Person < ActiveRecord::Base
 
   before_create :generate_uuid, unless: :uuid?
   before_save :downcase_email
-  after_save :update_nation_builder, :save_location
+  after_save :update_nation_builder, :save_location, unless: :skip_nb_update
 
   scope :identify, -> identifier {
     includes(:actions)
@@ -50,12 +51,12 @@ class Person < ActiveRecord::Base
   delegate :update_location, :district, :state, to: :location
 
   FIELDS_ALSO_ON_NB = %w[email first_name last_name is_volunteer phone]
-  PERMITTED_PUBLIC_FIELDS = [:email, :phone, :first_name, :last_name, :address, :city, :zip, :is_volunteer, remote_fields: [:event_id, :skills, tags: []]]
+  PERMITTED_PUBLIC_FIELDS = [:email, :phone, :first_name, :last_name, :address, :city, :zip, :is_volunteer, remote_fields: [:event_id, :donation_amount, :employer, :occupation, :skills, tags: []]]
   LOCATION_ATTRIBUTES = [:address, :zip, :city]
   DEFAULT_TARGET_COUNT = 100
 
   SUPPLAMENTRY_ATTRIBUTES = [:remote_fields] + LOCATION_ATTRIBUTES
-  attr_accessor *SUPPLAMENTRY_ATTRIBUTES
+  attr_accessor *SUPPLAMENTRY_ATTRIBUTES, :skip_nb_update
 
   def self.create_or_update(person_params)
     search_values = person_params.symbolize_keys.slice(:uuid, :email, :phone).compact
@@ -169,13 +170,14 @@ class Person < ActiveRecord::Base
   def create_action(params)
     params.symbolize_keys!
     if activity = Activity.find_or_create_by(template_id: params[:template_id])
-      action_params = params.slice(:utm_source, :utm_medium, :utm_campaign, :source_url)
+      action_params = params.slice(:utm_source, :utm_medium, :utm_campaign,
+                                   :source_url, :donation_amount_in_cents)
       actions.create!(action_params.merge(activity: activity))
     end
   end
 
   def merge!(other)
-    raise "cannot merge wit a new record" if other.new_record?
+    raise "cannot merge with a new record" if other.new_record?
     raise "cannot merge with myself" if other == self
 
     #merge associations

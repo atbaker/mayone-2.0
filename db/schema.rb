@@ -11,25 +11,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151015120755) do
+ActiveRecord::Schema.define(version: 20151231182833) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "actions", force: :cascade do |t|
-    t.integer  "person_id",       null: false
-    t.integer  "activity_id",     null: false
-    t.datetime "created_at",      null: false
-    t.datetime "updated_at",      null: false
+    t.integer  "person_id",                null: false
+    t.integer  "activity_id",              null: false
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
     t.string   "utm_source"
     t.string   "utm_medium"
     t.string   "utm_campaign"
     t.string   "source_url"
-    t.float    "donation_amount"
+    t.integer  "donation_amount_in_cents"
   end
 
   add_index "actions", ["activity_id"], name: "index_actions_on_activity_id", using: :btree
-  add_index "actions", ["donation_amount"], name: "index_actions_on_donation_amount", using: :btree
+  add_index "actions", ["donation_amount_in_cents"], name: "index_actions_on_donation_amount_in_cents", using: :btree
   add_index "actions", ["person_id", "activity_id"], name: "index_actions_on_person_id_and_activity_id", using: :btree
   add_index "actions", ["person_id"], name: "index_actions_on_person_id", using: :btree
 
@@ -194,6 +194,7 @@ ActiveRecord::Schema.define(version: 20151015120755) do
     t.string   "last_name"
     t.string   "uuid"
     t.boolean  "is_volunteer"
+    t.string   "stripe_id"
   end
 
   add_index "people", ["email"], name: "index_people_on_email", unique: true, using: :btree
@@ -222,6 +223,13 @@ ActiveRecord::Schema.define(version: 20151015120755) do
 
   add_index "states", ["abbrev"], name: "index_states_on_abbrev", unique: true, using: :btree
   add_index "states", ["name"], name: "index_states_on_name", unique: true, using: :btree
+
+  create_table "subscriptions", force: :cascade do |t|
+    t.integer "person_id", null: false
+    t.string  "remote_id", null: false
+  end
+
+  add_index "subscriptions", ["person_id"], name: "index_subscriptions_on_person_id", using: :btree
 
   create_table "targets", force: :cascade do |t|
     t.integer  "campaign_id"
@@ -262,6 +270,7 @@ ActiveRecord::Schema.define(version: 20151015120755) do
   add_foreign_key "locations", "states"
   add_foreign_key "sponsorships", "bills"
   add_foreign_key "sponsorships", "legislators"
+  add_foreign_key "subscriptions", "people"
   add_foreign_key "targets", "campaigns"
   add_foreign_key "targets", "legislators"
   add_foreign_key "zip_codes", "states"
