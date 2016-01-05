@@ -5,8 +5,8 @@ describe V1::PaymentsController, type: :controller do
   describe "POST create" do
     it "creates subscription if recurring == true" do
       person = stub_person_create_or_update
-      customer = stub_stripe_customer_create(id: 'customer id',
-                                             subscription_id: 'subscription id')
+      stub_stripe_customer_create(id: 'customer id',
+                                  subscription_id: 'subscription id')
 
       post :create, amount: 400, source: 'test token', template_id: 'donate',
         recurring: true, person: { email: 'user@example.com' }
@@ -23,7 +23,7 @@ describe V1::PaymentsController, type: :controller do
 
     it "charges stripe once if recurring is falsy" do
       allow(Stripe::Charge).to receive(:create)
-      person = stub_person_create_or_update
+      stub_person_create_or_update
 
       post :create, amount: 400, source: 'test token', template_id: 'donate',
         person: { email: 'user@example.com' }
@@ -34,8 +34,7 @@ describe V1::PaymentsController, type: :controller do
 
     it "creates/updates person with donation info" do
       allow(Stripe::Charge).to receive(:create)
-      person = spy('person')
-      allow(Person).to receive(:create_or_update).and_return(person)
+      stub_person_create_or_update
 
       post :create, amount: 400, source: 'test token', template_id: 'donate',
         person: { email: 'user@example.com' }
@@ -46,8 +45,7 @@ describe V1::PaymentsController, type: :controller do
 
     it "creates donate action on person" do
       allow(Stripe::Charge).to receive(:create)
-      person = spy('person')
-      allow(Person).to receive(:create_or_update).and_return(person)
+      person = stub_person_create_or_update
 
       post :create, amount: 400, source: 'test token', template_id: 'donate',
         person: { email: 'user@example.com' }
@@ -62,23 +60,17 @@ describe V1::PaymentsController, type: :controller do
   end
 
   def stub_person_create_or_update
-    spy('person').tap do |person|
-      allow(Person).to receive(:create_or_update).and_return(person)
-    end
+    person = spy('person')
+    allow(Person).to receive(:create_or_update).and_return(person)
+    person
   end
 
   def stub_stripe_customer_create(id: '', subscription_id: '')
-    fake_stripe_customer(id: id, subscription_id: subscription_id).tap do |cust|
-      allow(Stripe::Customer).to receive(:create).and_return(cust)
-    end
+    customer = spy('customer')
+    allow(customer).to receive(:id).and_return(id)
+    subscription_data = OpenStruct.new(data: [OpenStruct.new(id: subscription_id)])
+    allow(customer).to receive(:subscriptions).and_return(subscription_data)
+    allow(Stripe::Customer).to receive(:create).and_return(customer)
   end
 
-  def fake_stripe_customer(id: '', subscription_id: '')
-    subscription = Struct.new(:id).
-      new(subscription_id)
-    subscriptions = Struct.new(:data).
-      new([subscription])
-    Struct.new(:id, :subscriptions).
-      new(id, subscriptions)
-  end
 end
