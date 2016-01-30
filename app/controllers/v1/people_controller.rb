@@ -1,7 +1,7 @@
 class V1::PeopleController < V1::BaseController
 
   def create
-    @person = PersonWithRemoteFields.find_or_build(person_params)
+    @person = PersonConstructor.new(person_params).build
     if @person.save
       if template_ids = params[:actions].presence
         @person.mark_activities_completed(template_ids)
@@ -19,7 +19,7 @@ class V1::PeopleController < V1::BaseController
   end
 
   def targets
-   @person = Person.create_or_update(person_params)
+    @person = Person.create_or_update(person_params)
     if @person.valid?
       render
     else

@@ -60,23 +60,7 @@ class Person < ActiveRecord::Base
   attr_accessor *SUPPLEMENTARY_ATTRIBUTES, :skip_nb_update
 
   def self.create_or_update(person_params)
-    search_values = person_params.symbolize_keys.slice(:uuid, :email, :phone).compact
-
-    search_values.each do |search_key, search_value|
-      case search_key
-        when :email then search_value.downcase!
-        when :phone then search_value = PhonyRails.normalize_number(search_value, default_country_code: 'US')
-      end
-      @person = find_by({search_key => search_value})
-      break if @person.present?
-    end
-
-    if search_values.any? && @person.present?
-      @person.update(person_params)
-    else
-      @person = create(person_params)
-    end
-    @person
+    PersonConstructor.new(person_params).create.person
   end
 
   def self.new_uuid

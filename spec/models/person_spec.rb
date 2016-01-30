@@ -80,7 +80,6 @@ describe Person do
         person = Person.create_or_update(post_params)
 
         expect(person.attributes.values & person_params.values).to eq(person_params.values)
-        expect(person.remote_fields).to eq(remote_fields)
         expect(NbPersonPushJob).to have_received(:perform_later).with(expected_params)
       end
     end
