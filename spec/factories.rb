@@ -32,9 +32,11 @@ FactoryGirl.define do
 
   factory :location do
     person
-    district
-    state { district.state }
-    sequence(:zip_code) { |n| "2#{n.to_s.rjust(4,'0')}" }
+
+    trait :with_district_and_state do
+      district
+      state { district.state }
+    end
   end
 
   factory :event do

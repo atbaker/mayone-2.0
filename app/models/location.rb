@@ -23,39 +23,7 @@ class Location < ActiveRecord::Base
   after_save :update_nation_builder
 
   def update_location(address_params)
-    address_params[:zip] = nil unless ZipCode.valid_zip?(address_params[:zip])
-
-    if source = address_source(address_params)
-      new_attributes = {
-        address_1:  address_params[:address] || nil,
-        city:       address_params[:city],
-        state:      source.try(:state),
-        zip_code:   source.try(:zip_code) || address_params[:zip]
-      }.compact!
-
-      if new_attributes.nil?
-        Airbrake.notify(error_messasage: 'Error in lookup - perhaps service is down?')
-        new_attributes = {}
-      end
-      new_attributes[:district] = source.is_a?(District) ? source : source.try(:single_district)
-
-      update_attributes(new_attributes)
-    elsif new_state = State.find_by(abbrev: address_params[:state_abbrev])
-      update_attributes(
-        address_1: address_params[:address],
-        city: address_params[:city],
-        state: new_state,
-        zip_code: address_params[:zip]
-      )
-    end
-  end
-
-  def address_source(address_params)
-    if address_params[:address]
-      District.find_by_address(address_params)
-    elsif address_params[:zip] && updated_zip?(address_params[:zip])
-      ZipCode.find_by(zip_code: address_params[:zip])
-    end
+    LocationUpdater.new(self, address_params).update
   end
 
   def state_abbrev
@@ -67,10 +35,6 @@ class Location < ActiveRecord::Base
   end
 
   private
-
-  def updated_zip?(zip)
-    zip != zip_code
-  end
 
   def serializable_hash(options)
     options ||= { methods: [:state_abbrev],
