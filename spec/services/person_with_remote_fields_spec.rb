@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe "PersonWithRemoteFields" do
+describe PersonWithRemoteFields do
   describe ".new" do
     it "applies attributes to given person" do
       person = Person.new

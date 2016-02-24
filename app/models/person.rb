@@ -60,7 +60,9 @@ class Person < ActiveRecord::Base
   attr_accessor *SUPPLEMENTARY_ATTRIBUTES, :skip_nb_update
 
   def self.create_or_update(person_params)
-    PersonConstructor.new(person_params).create.person
+    person = PersonConstructor.new(person_params).build
+    person.save
+    person.person # returning PersonWithRemoteFields will break some associations
   end
 
   def self.new_uuid
