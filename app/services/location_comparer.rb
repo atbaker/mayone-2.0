@@ -1,12 +1,12 @@
 class LocationComparer
-  def initialize(old_city: nil, old_state: nil, old_zip: nil,
-                 new_city: nil, new_state: nil, new_zip: nil)
+  def initialize(old_city: nil, old_state: nil, old_zip_code: nil,
+                 new_city: nil, new_state: nil, new_zip_code: nil)
     @old_city = old_city
     @old_state = old_state
-    @old_zip = old_zip
+    @old_zip_code = old_zip_code
     @new_city = new_city
     @new_state = new_state
-    @new_zip = new_zip
+    @new_zip_code = new_zip_code
   end
 
   def different?
@@ -15,10 +15,11 @@ class LocationComparer
 
   private
 
-  attr_reader :old_city, :old_state, :old_zip, :new_city, :new_state, :new_zip
+  attr_reader :old_city, :old_state, :old_zip_code,
+    :new_city, :new_state, :new_zip_code
 
   def different_zip?
-    new_zip && new_zip != old_zip
+    new_zip_code && new_zip_code != old_zip_code
   end
 
   def different_city?

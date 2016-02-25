@@ -4,9 +4,9 @@ class LocationUpdater
     @address_params = address_params
   end
 
-  def update
+  def assign
     if sufficient_address?
-      location.update_attributes(relevant_attributes)
+      location.assign_attributes(relevant_attributes)
     end
   end
 
@@ -28,9 +28,10 @@ class LocationUpdater
 
   def new_attributes
     {
-      address_1: new_address,
+      address_1: new_address_1,
+      address_2: new_address_2,
       city:      new_city,
-      zip_code:  new_zip,
+      zip_code:  new_zip_code,
       district:  find_district,
       state:     find_state,
     }
@@ -53,10 +54,10 @@ class LocationUpdater
     LocationComparer.new(
       new_city: new_city,
       new_state: new_state,
-      new_zip: new_zip,
+      new_zip_code: new_zip_code,
       old_city: location.city,
       old_state: location.state,
-      old_zip: location.zip_code,
+      old_zip_code: location.zip_code,
     ).different?
   end
 
@@ -69,9 +70,9 @@ class LocationUpdater
   end
 
   def find_district_by_address
-    if new_address && new_zip
+    if new_address_1 && new_zip_code
       search_params = address_params.clone
-      search_params[:state] = search_params.delete(:state_abbrev)
+      search_params[:address] = search_params.delete(:address_1)
       District.find_by_address(search_params)
     end
   end
@@ -81,13 +82,13 @@ class LocationUpdater
   end
 
   def find_zip_code
-    @_find_zip_code ||= ZipCode.find_by(zip_code: new_zip)
+    @_find_zip_code ||= ZipCode.find_by(zip_code: new_zip_code)
   end
 
-  def new_zip
-    if ZipCode.valid_zip?(address_params[:zip])
-      address_params[:zip]
-    end
+  def new_zip_code
+    @_new_zip ||= if ZipCode.valid_zip?(address_params[:zip_code])
+                    address_params[:zip_code]
+                  end
   end
 
   def new_state
@@ -100,7 +101,11 @@ class LocationUpdater
     address_params[:city]
   end
 
-  def new_address
-    address_params[:address]
+  def new_address_1
+    address_params[:address_1]
+  end
+
+  def new_address_2
+    address_params[:address_2]
   end
 end

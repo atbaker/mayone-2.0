@@ -35,7 +35,7 @@ describe Location do
 
       expect(LocationUpdater).to have_received(:new).
         with(location, :address_params)
-      expect(updater).to have_received(:update)
+      expect(updater).to have_received(:assign)
     end
   end
 

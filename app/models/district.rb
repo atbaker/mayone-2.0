@@ -25,11 +25,12 @@ class District < ActiveRecord::Base
     joins(:state).where(states: { abbrev: state }).find_by(district: district)
   end
 
-  def self.find_by_address(address:, zip:, city: nil, state: nil, includes: nil)
-    results = Integration::Here.geocode_address( address: address,
-                                                 city:    city,
-                                                 state:   state,
-                                                 zip:     zip )
+  def self.find_by_address(address:, zip_code:, city: nil, state_abbrev: nil,
+                           includes: nil)
+    results = Integration::Here.geocode_address(address: address,
+                                                city:    city,
+                                                state:   state_abbrev,
+                                                zip:     zip_code)
     if coords = results[:coordinates]
       if district_hash = Integration::MobileCommons.district_from_coords(coords)
         District.includes(includes).find_by_state_and_district(district_hash)

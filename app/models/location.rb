@@ -23,7 +23,8 @@ class Location < ActiveRecord::Base
   after_save :update_nation_builder
 
   def update_location(address_params)
-    LocationUpdater.new(self, address_params).update
+    LocationUpdater.new(self, address_params).assign
+    save
   end
 
   def state_abbrev

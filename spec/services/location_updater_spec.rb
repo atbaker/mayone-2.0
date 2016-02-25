@@ -3,9 +3,9 @@ require 'rails_helper'
 describe LocationUpdater do
   describe "#update" do
     bad_addresses = [
-      { zip: 'bad' },
+      { zip_code: 'bad' },
       { state_abbrev: 'bad' },
-      { address: 'address', city: 'city' },
+      { address_1: 'address', city: 'city' },
     ]
 
     bad_addresses.each do |bad_address|
@@ -13,74 +13,74 @@ describe LocationUpdater do
         location = build_stubbed_location
         updater = LocationUpdater.new(location, bad_address)
 
-        updater.update
+        updater.assign
 
-        expect(location).not_to have_received(:update_attributes)
+        expect(location).not_to have_received(:assign_attributes)
       end
     end
 
     it "ignores zip codes with wrong format" do
-      address = { zip: 'wrong format', state_abbrev: 'AA' }
+      address = { zip_code: 'wrong format', state_abbrev: 'AA' }
       state = stub_state_find('AA')
       location = build_stubbed_location
       updater = LocationUpdater.new(location, address)
 
-      updater.update
+      updater.assign
 
-      expect(location).to have_received(:update_attributes).
+      expect(location).to have_received(:assign_attributes).
         with(state: state)
     end
 
     it "finds state based on abbrev" do
-      address = { zip: '12345', state_abbrev: 'AA' }
+      address = { zip_code: '12345', state_abbrev: 'AA' }
       state = stub_state_find('AA')
       location = build_stubbed_location
       updater = LocationUpdater.new(location, address)
 
-      updater.update
+      updater.assign
 
-      expect(location).to have_received(:update_attributes).
+      expect(location).to have_received(:assign_attributes).
         with(zip_code: '12345', state: state)
     end
 
     it "finds state based on zip if no state provided" do
-      address = { zip: '12345' }
+      address = { zip_code: '12345' }
       zip_code = stub_zip_code_find('12345')
       location = build_stubbed_location
       updater = LocationUpdater.new(location, address)
 
-      updater.update
+      updater.assign
 
-      expect(location).to have_received(:update_attributes).
+      expect(location).to have_received(:assign_attributes).
         with(zip_code: '12345', state: zip_code.state)
     end
 
     it "finds district based on zip if zip has only one district" do
-      address = { address: 'address', zip: '12345' }
+      address = { address_1: 'address', zip_code: '12345' }
       zip_code = stub_zip_code_find('12345', district: 'district')
       location = build_stubbed_location
       updater = LocationUpdater.new(location, address)
       stub_district_find_by_address
 
-      updater.update
+      updater.assign
 
-      expect(location).to have_received(:update_attributes).
+      expect(location).to have_received(:assign_attributes).
         with(hash_including(district: 'district'))
       expect(District).not_to have_received(:find_by_address)
     end
 
     it "finds district based on address if address and zip present" do
-      address = { address: 'address', zip: '12345' }
+      address = { address_1: 'address', zip_code: '12345' }
       zip_code = stub_zip_code_find('12345')
       location = build_stubbed_location
       updater = LocationUpdater.new(location, address)
       stub_district_find_by_address('district')
 
-      updater.update
+      updater.assign
 
       expect(District).to have_received(:find_by_address).
-        with(hash_including(address: 'address', zip: '12345'))
-      expect(location).to have_received(:update_attributes).
+        with(hash_including(address: 'address', zip_code: '12345'))
+      expect(location).to have_received(:assign_attributes).
         with(hash_including(district: 'district'))
     end
 
@@ -91,9 +91,9 @@ describe LocationUpdater do
         location = build_stubbed_location
         updater = LocationUpdater.new(location, address)
 
-        updater.update
+        updater.assign
 
-        expect(location).to have_received(:update_attributes).
+        expect(location).to have_received(:assign_attributes).
           with(state: state)
       end
 
@@ -104,7 +104,7 @@ describe LocationUpdater do
         stub_location_comparer
         updater = LocationUpdater.new(location, address)
 
-        updater.update
+        updater.assign
 
         expect(LocationComparer).not_to have_received(:new)
       end
@@ -112,7 +112,7 @@ describe LocationUpdater do
 
     context "with existing location data" do
       it "compares locations" do
-        address = { city: 'city', state_abbrev: 'AA', zip: '12345' }
+        address = { city: 'city', state_abbrev: 'AA', zip_code: '12345' }
         state = stub_state_find('AA')
         stub_zip_code_find('12345')
         location = build_stubbed_location(
@@ -121,36 +121,36 @@ describe LocationUpdater do
         stub_location_comparer
         updater = LocationUpdater.new(location, address)
 
-        updater.update
+        updater.assign
 
         expect(LocationComparer).to have_received(:new).
-          with(new_city: 'city', new_state: state, new_zip: '12345',
-               old_city: 'city', old_state: state, old_zip: '12345')
+          with(new_city: 'city', new_state: state, new_zip_code: '12345',
+               old_city: 'city', old_state: state, old_zip_code: '12345')
       end
 
       it "preserves old data if locations are similar" do
-        address = { zip: '12345' }
+        address = { zip_code: '12345' }
         stub_zip_code_find('12345')
         location = build_stubbed_location(city: 'city', zip_code: '12345')
         stub_location_comparer(different: false)
         updater = LocationUpdater.new(location, address)
 
-        updater.update
+        updater.assign
 
-        expect(location).to have_received(:update_attributes).
+        expect(location).to have_received(:assign_attributes).
           with(hash_excluding(:city))
       end
 
       it "overwrites old data if locations are different" do
-        address = { zip: '12345' }
+        address = { zip_code: '12345' }
         stub_zip_code_find('12345')
         location = build_stubbed_location(zip_code: '11111')
         stub_location_comparer(different: true)
         updater = LocationUpdater.new(location, address)
 
-        updater.update
+        updater.assign
 
-        expect(location).to have_received(:update_attributes).
+        expect(location).to have_received(:assign_attributes).
           with(hash_including(*all_location_fields))
       end
     end
@@ -173,7 +173,7 @@ describe LocationUpdater do
 
   def build_stubbed_location(params = nil)
     location = build_stubbed(:location, params)
-    allow(location).to receive(:update_attributes)
+    allow(location).to receive(:assign_attributes)
     location
   end
 

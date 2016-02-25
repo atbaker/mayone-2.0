@@ -3,7 +3,7 @@ require 'rails_helper'
 describe LocationComparer do
   describe "#different?" do
     different_addresses = [
-      { old_zip: 'old', new_zip: 'new' },
+      { old_zip_code: 'old', new_zip_code: 'new' },
       { old_state: 'old', new_state: 'new' },
       { old_state: 'same', old_city: 'old',
         new_state: 'same', new_city: 'new' },
@@ -20,7 +20,7 @@ describe LocationComparer do
     end
 
     similar_addresses = [
-      { old_zip: 'same', new_zip: 'same' },
+      { old_zip_code: 'same', new_zip_code: 'same' },
       { old_state: 'same', new_state: 'same' },
       { old_state: 'same', old_city: nil,
         new_state: 'same', new_city: 'new' },

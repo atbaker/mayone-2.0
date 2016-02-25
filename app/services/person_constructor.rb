@@ -1,4 +1,8 @@
 class PersonConstructor
+  MAPPINGS = {
+    address: :address_1,
+  }
+
   def initialize(attributes)
     @attributes = attributes.symbolize_keys
   end
@@ -16,6 +20,10 @@ class PersonConstructor
   end
 
   def cleaned_attributes
-    Hash[attributes.map{|k, v| [k, v.try(:strip) || v] }]
+    Hash[attributes.map{|k, v| [rename_key(k), v.try(:strip) || v] }]
+  end
+
+  def rename_key(key)
+    MAPPINGS[key] || key
   end
 end
