@@ -1,20 +1,26 @@
 require "rails_helper"
 
 RSpec.describe "POST /people" do
-  it "creates person, marks activities complete, and returns uuid" do
+  include ActiveJob::TestHelper
+  it "creates person, updates NB, marks activities complete, and returns uuid" do
     activity = create(:activity)
     state = create(:state)
     person = create(:person)
-    allow(NbPersonPushJob).to receive(:perform_later)
+    allow(Integration::NationBuilder).to receive(:create_or_update_person)
 
-    post "/people", person: { email: person.email, first_name: 'new name',
-                              city: 'city', state_abbrev: state.abbrev,
-                              remote_fields: { employer: 'work' } },
-                    actions: [activity.template_id]
+    perform_enqueued_jobs do
+      post "/people", person: { email: person.email, first_name: 'new name',
+                                city: 'city', state_abbrev: state.abbrev,
+                                remote_fields: { employer: 'work' } },
+                      actions: [activity.template_id]
+    end
 
-    expect(NbPersonPushJob).to have_received(:perform_later).
-      with(email: person.email, first_name: 'new name', employer: 'work',
-           city: 'city', state_abbrev: state.abbrev)
+    expected_params = {
+      email: person.email, first_name: 'new name', employer: 'work',
+      registered_address: { city: 'city', state: state.abbrev }
+    }
+    expect(Integration::NationBuilder).to have_received(:create_or_update_person).
+      with(attributes: expected_params)
     person.reload
     expect(person.first_name).to eq 'new name'
     expect(person.location.city).to eq 'city'

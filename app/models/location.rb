@@ -20,8 +20,6 @@ class Location < ActiveRecord::Base
   belongs_to :district
   belongs_to :state
 
-  after_save :update_nation_builder
-
   def update_location(address_params)
     LocationUpdater.new(self, address_params).assign
     save
@@ -42,11 +40,4 @@ class Location < ActiveRecord::Base
                     only: [:address_1, :address_2, :city, :zip_code] }
     super options
   end
-
-  def update_nation_builder
-    if (changed - ["district_id", "created_at", "updated_at"]).any?
-      NbPersonPushAddressJob.perform_later(person.email, self.as_json)
-    end
-  end
-
 end
