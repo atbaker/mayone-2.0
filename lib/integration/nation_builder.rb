@@ -40,15 +40,6 @@ class NationBuilder
     rename_keys(person, MAPPINGS_PERSON)
   end
 
-  def location_keys
-    MAPPINGS_LOCATION.keys
-  end
-
-  def self.location_params(email:, location:)
-    address = rename_keys(location.symbolize_keys, MAPPINGS_LOCATION)
-    { email: email, registered_address: address }
-  end
-
   def self.create_person_and_rsvp(event_id:, person_attributes: {}, person_id: nil)
     raise ArgumentError, 'missing :person_id or :person_attributes' if person_id.blank? && (person_attributes.nil? || person_attributes.empty?)
     person_id ||= create_or_update_person(attributes: person_attributes)['id']
