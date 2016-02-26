@@ -3,7 +3,7 @@ class PersonWithRemoteFields < SimpleDelegator
     :email, :phone, :first_name, :last_name, :is_volunteer
   ]
   LOCATION_FIELDS = [
-    :address_1, :address_2, :city, :state_abbrev, :zip
+    :address_1, :address_2, :city, :state_abbrev, :zip_code
   ]
   REMOTE_FIELDS = [
     :employer, :occupation, :skills, :tags
@@ -35,6 +35,8 @@ class PersonWithRemoteFields < SimpleDelegator
   attr_reader :attributes
 
   def update_remote
+    # note if state_abbrev is not passed in, but is found by LocationUpdater,
+    # it will not be included with remote_attributes
     NbPersonPushJob.perform_later(remote_attributes)
   end
 

@@ -1,6 +1,7 @@
 class PersonConstructor
   KEY_NAME_MAPPINGS = {
     address: :address_1,
+    zip: :zip_code,
   }
 
   def initialize(attributes)
