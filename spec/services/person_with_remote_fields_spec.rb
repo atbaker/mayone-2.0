@@ -4,12 +4,28 @@ describe PersonWithRemoteFields do
   describe ".new" do
     it "applies attributes to given person" do
       person = Person.new
+      params = { last_name: 'smith' }
+      allow(LocationUpdater).to receive(:new)
 
-      person_with_remote_fields = PersonWithRemoteFields
-        .new(person, last_name: 'smith')
+      person_with_remote_fields = PersonWithRemoteFields.new(person, params)
 
+      expect(LocationUpdater).not_to have_received(:new)
       expect(person_with_remote_fields).to eq person
       expect(person_with_remote_fields.last_name).to eq 'smith'
+    end
+
+    it "assigns location attributes" do
+      person = Person.new
+      params = { address_1: 'address' }
+      updater = spy('updater')
+      allow(LocationUpdater).to receive(:new).and_return(updater)
+
+      person_with_remote_fields = PersonWithRemoteFields.new(person, params)
+
+      expect(LocationUpdater).to have_received(:new).
+        with(person.location, { address_1: 'address' })
+      expect(updater).to have_received(:assign)
+      expect(person_with_remote_fields).to eq person
     end
   end
 
