@@ -29,14 +29,24 @@ class NationBuilder
     { attributes: event }
   end
 
-  def self.person_params(person)
-    person = rename_keys(person.symbolize_keys, MAPPINGS_PERSON)
-    { attributes: person }
+  def self.person_params(params)
+    person = params.symbolize_keys
+    address = person.slice(*MAPPINGS_LOCATION.keys)
+    if address.any?
+      address = rename_keys(address, MAPPINGS_LOCATION)
+      person = person.except(*MAPPINGS_LOCATION.keys).
+        merge(registered_address: address)
+    end
+    rename_keys(person, MAPPINGS_PERSON)
+  end
+
+  def location_keys
+    MAPPINGS_LOCATION.keys
   end
 
   def self.location_params(email:, location:)
     address = rename_keys(location.symbolize_keys, MAPPINGS_LOCATION)
-    { attributes: { email: email, registered_address: address } }
+    { email: email, registered_address: address }
   end
 
   def self.create_person_and_rsvp(event_id:, person_attributes: {}, person_id: nil)

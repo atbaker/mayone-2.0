@@ -1,10 +1,10 @@
 class PersonConstructor
-  MAPPINGS = {
+  KEY_NAME_MAPPINGS = {
     address: :address_1,
   }
 
   def initialize(attributes)
-    @attributes = attributes.symbolize_keys
+    @attributes = attributes.deep_symbolize_keys
   end
 
   def build
@@ -20,10 +20,22 @@ class PersonConstructor
   end
 
   def cleaned_attributes
-    Hash[attributes.map{|k, v| [rename_key(k), v.try(:strip) || v] }]
+    rename_keys_and_strip_values(flatten_remote_fields(attributes))
+  end
+
+  def flatten_remote_fields(attributes)
+    attributes.except(:remote_fields).merge(attributes[:remote_fields] || {})
+  end
+
+  def rename_keys_and_strip_values(attributes)
+    Hash[attributes.map{|k, v| [rename_key(k), strip_value(v)] }]
   end
 
   def rename_key(key)
-    MAPPINGS[key] || key
+    KEY_NAME_MAPPINGS[key] || key
+  end
+
+  def strip_value(value)
+    value.try(:strip) || value
   end
 end

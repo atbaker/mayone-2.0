@@ -3,6 +3,6 @@ class NbPersonPushAddressJob < ActiveJob::Base
 
   def perform(email, location)
     nb_args = Integration::NationBuilder.location_params(email: email, location: location)
-    Integration::NationBuilder.create_or_update_person(nb_args)
+    Integration::NationBuilder.create_or_update_person(attributes: nb_args)
   end
 end

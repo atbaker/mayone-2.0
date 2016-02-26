@@ -7,6 +7,23 @@ describe Integration::NationBuilder do
     Integration::NationBuilder.class_variable_set :@@nb_client, nil
   end
 
+  describe ".person_params" do
+    it "renames fields and puts location info in nested hash" do
+      params = { email: 'email', other: 'other', address_1: 'address',
+                 city: 'city', state_abbrev: 'state' }
+      expected = {
+        email: 'email', other: 'other',
+        registered_address: {
+          address1: 'address', city: 'city', state: 'state'
+        }
+      }
+
+      formatted_params = Integration::NationBuilder.person_params(params)
+
+      expect(formatted_params).to eq expected
+    end
+  end
+
   describe ".create_person_and_rsvp" do
     context "with a person object" do
       it "should call proper methods" do

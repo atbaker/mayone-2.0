@@ -1,18 +1,16 @@
 class PersonWithRemoteFields < SimpleDelegator
-  REMOTE_FIELDS = [
-    :email, :phone, :first_name, :last_name, :is_volunteer,
-    :employer, :occupation, :skills, :tags
-  ]
   PERSON_FIELDS = [
     :email, :phone, :first_name, :last_name, :is_volunteer
   ]
   LOCATION_FIELDS = [
-    :address_1, :city, :state_abbrev, :zip
+    :address_1, :address_2, :city, :state_abbrev, :zip
+  ]
+  REMOTE_FIELDS = [
+    :employer, :occupation, :skills, :tags
   ]
 
   def initialize(person, attributes)
-    remote_fields = attributes.symbolize_keys.delete(:remote_fields) || {}
-    @attributes = attributes.merge(remote_fields).symbolize_keys
+    @attributes = attributes
     person.assign_attributes(person_attributes)
     LocationUpdater.new(person.location, location_attributes).assign
     person.skip_nb_update = true
@@ -41,7 +39,7 @@ class PersonWithRemoteFields < SimpleDelegator
   end
 
   def remote_attributes
-    attributes.slice(*REMOTE_FIELDS)
+    attributes.slice(*(PERSON_FIELDS + LOCATION_FIELDS + REMOTE_FIELDS))
   end
 
   def person_attributes

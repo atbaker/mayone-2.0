@@ -32,6 +32,18 @@ describe PersonConstructor do
       expect(PersonWithRemoteFields).to have_received(:new).
         with(new_person, params)
     end
+
+    it "normalizes params" do
+      params = { address: 'address', remote_fields: { occupation: 'work' } }
+      expected_params = { address_1: 'address', occupation: 'work' }
+      new_person = stub_new_person
+      stub_new_person_with_remote_fields
+
+      PersonConstructor.new(params).build
+
+      expect(PersonWithRemoteFields).to have_received(:new).
+        with(new_person, expected_params)
+    end
   end
 
   def stub_person_finder(params:, found:)

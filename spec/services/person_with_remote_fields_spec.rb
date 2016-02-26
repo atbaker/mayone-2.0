@@ -55,21 +55,5 @@ describe PersonWithRemoteFields do
         expect(NbPersonPushJob).not_to have_received(:perform_later)
       end
     end
-
-    context "with old-style remote params" do
-      # params can be passed in with a nested hash of remote_fields (old-style)
-      # or with flat hash of local person fields and remote fields.
-      it "updates remote" do
-        allow(NbPersonPushJob).to receive(:perform_later)
-        person = PersonWithRemoteFields.
-          new(Person.new, email: 'user@example.com',
-                          remote_fields: { occupation: 'work' })
-
-        person.save
-
-        expect(NbPersonPushJob).to have_received(:perform_later).
-          with(email: 'user@example.com', occupation: 'work')
-      end
-    end
   end
 end
