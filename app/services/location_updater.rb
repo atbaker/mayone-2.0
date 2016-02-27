@@ -4,9 +4,11 @@ class LocationUpdater
     @address_params = address_params
   end
 
-  def assign
+  def new_attributes
     if sufficient_address?
-      location.assign_attributes(relevant_attributes)
+      relevant_attributes
+    else
+      {}
     end
   end
 
@@ -20,13 +22,13 @@ class LocationUpdater
 
   def relevant_attributes
     if discard_old_values?
-      new_attributes
+      attributes
     else
-      new_attributes.compact
+      attributes.compact
     end
   end
 
-  def new_attributes
+  def attributes
     {
       address_1: new_address_1,
       address_2: new_address_2,

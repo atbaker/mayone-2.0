@@ -12,7 +12,7 @@ class PersonWithRemoteFields < SimpleDelegator
   def initialize(person, attributes)
     @attributes = attributes
     person.assign_attributes(person_attributes)
-    assign_location_attributes(person)
+    person.location.assign_attributes(new_location_attributes(person))
     person.skip_nb_update = true
     super(person)
   end
@@ -34,9 +34,11 @@ class PersonWithRemoteFields < SimpleDelegator
 
   attr_reader :attributes
 
-  def assign_location_attributes(person)
+  def new_location_attributes(person)
     if location_attributes.any?
-      LocationUpdater.new(person.location, location_attributes).assign
+      LocationUpdater.new(person.location, location_attributes).new_attributes
+    else
+      {}
     end
   end
 

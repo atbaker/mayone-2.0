@@ -24,7 +24,7 @@ describe PersonWithRemoteFields do
 
       expect(LocationUpdater).to have_received(:new).
         with(person.location, { address_1: 'address' })
-      expect(updater).to have_received(:assign)
+      expect(updater).to have_received(:new_attributes)
       expect(person_with_remote_fields).to eq person
     end
   end
