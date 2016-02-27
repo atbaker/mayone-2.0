@@ -6,10 +6,11 @@ class PersonConstructor
 
   def initialize(attributes)
     @attributes = attributes.deep_symbolize_keys
+    normalize_attributes
   end
 
   def build
-    PersonWithRemoteFields.new(find_or_initialize_person, cleaned_attributes)
+    PersonWithRemoteFields.new(find_or_initialize_person, attributes)
   end
 
   private
@@ -20,23 +21,27 @@ class PersonConstructor
     PersonFinder.new(attributes).find || Person.new
   end
 
-  def cleaned_attributes
-    rename_keys_and_strip_values(flatten_remote_fields(attributes))
+  def normalize_attributes
+    flatten_remote_fields
+    rename_keys
+    strip_whitespace_from_values
   end
 
-  def flatten_remote_fields(attributes)
-    attributes.except(:remote_fields).merge(attributes[:remote_fields] || {})
+  def flatten_remote_fields
+    attributes.merge!(attributes.delete(:remote_fields) || {})
   end
 
-  def rename_keys_and_strip_values(attributes)
-    Hash[attributes.map{|k, v| [rename_key(k), strip_value(v)] }]
+  def rename_keys
+    renameable_keys.each do |key|
+      attributes[ KEY_NAME_MAPPINGS[key] ] = attributes.delete(key)
+    end
   end
 
-  def rename_key(key)
-    KEY_NAME_MAPPINGS[key] || key
+  def renameable_keys
+    attributes.keys & KEY_NAME_MAPPINGS.keys
   end
 
-  def strip_value(value)
-    value.try(:strip) || value
+  def strip_whitespace_from_values
+    attributes.merge!(attributes){ |k, v1| v1.try(:strip) || v1 }
   end
 end
