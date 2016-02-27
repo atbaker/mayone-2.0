@@ -7,9 +7,9 @@ describe V1::DonationsController, type: :controller do
       donation = double('donation', process: false, errors: { foo: ['bad'] })
       allow(Donation).to receive(:new).and_return(donation)
 
-      post :create, bad_param: 'nonsense'
+      post :create, bad_param: 'nonsense', person: {email: 'some@email.com'}
 
-      expect(json(response)).to eq({ "errors" => {"foo"=>["bad"]} })
+      expect(json(response)).to eq({ "error"=> {"foo"=>["bad"]} })
     end
   end
 

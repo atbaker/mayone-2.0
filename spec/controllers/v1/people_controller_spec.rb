@@ -41,8 +41,8 @@ describe V1::PeopleController,  type: :controller do
       it "returns error" do
         get :targets, person: { email: 'bad' }
         json_response = JSON.parse(response.body)
-        expect(json_response).to have_key('errors')
-        expect(json_response['errors']).to eq("Email is invalid.")
+        expect(json_response).to have_key('error')
+        expect(json_response['error']).to eq("Email is invalid.")
       end
     end
 

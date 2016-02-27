@@ -52,11 +52,12 @@ class Person < ActiveRecord::Base
   delegate :update_location, :district, :state, to: :location
 
   FIELDS_ALSO_ON_NB = %w[email first_name last_name is_volunteer phone]
-  PERMITTED_PUBLIC_FIELDS = [:email, :phone, :first_name, :last_name, :address, :city, :state_abbrev, :zip, :is_volunteer, remote_fields: [:event_id, :employer, :occupation, :skills, tags: []]]
+  PERMITTED_PUBLIC_FIELDS = [:email, :phone, :first_name, :last_name, :full_name, :address, :city, :state_abbrev, :zip, :is_volunteer, remote_fields: [:event_id, :employer, :occupation, :skills, tags: []]]
   LOCATION_ATTRIBUTES = [:address, :zip, :city, :state_abbrev]
   DEFAULT_TARGET_COUNT = 100
 
-  SUPPLEMENTARY_ATTRIBUTES = [:remote_fields] + LOCATION_ATTRIBUTES
+  SUPPLEMENTARY_ATTRIBUTES = [:remote_fields, :full_name] + LOCATION_ATTRIBUTES
+  ALL_AVAILABLE_ATTRIBUTES = PERMITTED_PUBLIC_FIELDS + LOCATION_ATTRIBUTES
   attr_accessor *SUPPLEMENTARY_ATTRIBUTES, :skip_nb_update
 
   def self.create_or_update(person_params)

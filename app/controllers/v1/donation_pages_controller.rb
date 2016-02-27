@@ -19,7 +19,7 @@ class V1::DonationPagesController < ApplicationController
       donation_page.reload
       render json: { uuid: donation_page.uuid }, status: :created
     else
-      render json: { errors: merge_errors(person, donation_page) },
+      render json: { error: merge_errors(person, donation_page) },
         status: :unprocessable_entity
     end
   end

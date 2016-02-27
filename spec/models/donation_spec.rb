@@ -3,8 +3,7 @@ require 'validates_email_format_of/rspec_matcher'
 
 describe Donation do
 
-  it { should validate_presence_of(:email) }
-  it { should validate_email_format_of(:email) }
+  it { should validate_presence_of(:person) }
   it { should validate_presence_of(:stripe_token) }
   it { should validate_presence_of(:employer) }
   it { should validate_presence_of(:occupation) }
@@ -13,18 +12,21 @@ describe Donation do
 
   describe "process" do
     it "creates subscription if recurring is true" do
-      person = stub_person_find_or_initialize_by
+      person = stub_person
+      allow(person).to receive(:update)
+      allow(person).to receive(:create_subscription)
+
       stub_stripe_customer_create(id: 'customer id',
                                   subscription_id: 'subscription id')
       donation = Donation.new(amount_in_cents: 400, stripe_token: 'test token',
-        recurring: true, email: 'user@example.com', occupation: 'job',
+        recurring: true, person: person, occupation: 'job',
         employer: 'work place')
 
       donation.process
 
       expect(Stripe::Customer).to have_received(:create).
         with(plan: 'one_dollar_monthly',
-         email: 'user@example.com',
+         email: person.email,
          quantity: 4,
          source: 'test token')
       expect(person).to have_received(:update).with(stripe_id: 'customer id')
@@ -32,11 +34,23 @@ describe Donation do
         with(remote_id: 'subscription id')
     end
 
+    it "charges stripe once if recurring not provideded" do
+      allow(Stripe::Charge).to receive(:create)
+      person = stub_person
+      donation = Donation.new(amount_in_cents: 400, stripe_token: 'test token',
+        person: person, occupation: 'job', employer: 'work place')
+
+      donation.process
+
+      expect(Stripe::Charge).to have_received(:create).
+        with(hash_including(amount: 400, source: 'test token', currency: 'usd'))
+    end
+
     it "charges stripe once if recurring is falsy" do
       allow(Stripe::Charge).to receive(:create)
-      stub_person_find_or_initialize_by
+      person = stub_person
       donation = Donation.new(amount_in_cents: 400, stripe_token: 'test token',
-        email: 'user@example.com', occupation: 'job', employer: 'work place')
+        person: person, occupation: 'job', employer: 'work place', recurring: 'false')
 
       donation.process
 
@@ -46,22 +60,22 @@ describe Donation do
 
     it "updates CRM with donation info" do
       allow(Stripe::Charge).to receive(:create)
-      stub_person_find_or_initialize_by
+      person = stub_person
       allow(NbDonationCreateJob).to receive(:perform_later)
       donation = Donation.new(amount_in_cents: 400, stripe_token: 'test token',
-        email: 'user@example.com', occupation: 'job', employer: 'work place')
+        person: person, occupation: 'job', employer: 'work place')
 
       donation.process
 
       expect(NbDonationCreateJob).to have_received(:perform_later).
-        with(400, { email: 'user@example.com', occupation: 'job', employer: 'work place' })
+        with(400, { email: person.email, occupation: 'job', employer: 'work place' })
     end
 
     it "creates donate action on person" do
       allow(Stripe::Charge).to receive(:create)
-      person = stub_person_find_or_initialize_by
+      person = stub_person
       donation = Donation.new(amount_in_cents: 400, stripe_token: 'test token',
-        email: 'user@example.com', occupation: 'job', employer: 'work place')
+        person: person, occupation: 'job', employer: 'work place')
 
       donation.process
 
@@ -70,9 +84,9 @@ describe Donation do
     end
   end
 
-  def stub_person_find_or_initialize_by
-    person = spy('person')
-    allow(Person).to receive(:find_or_initialize_by).and_return(person)
+  def stub_person
+    person = build_stubbed(:person)
+    allow(person).to receive(:create_action)
     person
   end
 

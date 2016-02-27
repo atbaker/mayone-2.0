@@ -1,12 +1,12 @@
 class Donation
   include ActiveModel::Model
 
-  attr_accessor :email, :employer, :occupation, :stripe_token, :recurring,
+  attr_accessor :person, :employer, :occupation, :stripe_token, :recurring,
     :utm_source, :utm_medium, :utm_campaign, :source_url, :amount_in_cents
 
   attr_writer :template_id
 
-  validates :email, presence: true, email_format: true
+  validates :person, presence: true
   validates :employer, presence: true
   validates :occupation, presence: true
   validates :stripe_token, presence: true
@@ -15,7 +15,6 @@ class Donation
 
   def process
     if valid?
-      find_or_create_person
       process_payment
       record_donation
       create_donate_action
@@ -23,17 +22,15 @@ class Donation
       false
     end
 
-  rescue Stripe::CardError => e
+  rescue Stripe::CardError, Stripe::InvalidRequestError => e
     errors.add(:stripe_token, e.json_body[:error][:message])
     false
   end
 
   private
 
-  attr_reader :person
-
   def process_payment
-    if recurring
+    if ActiveRecord::Type::Boolean.new.type_cast_from_user(recurring)
       stripe_customer = StripeCustomer.new(create_stripe_customer)
       person.update(stripe_id: stripe_customer.id)
       person.create_subscription(remote_id: stripe_customer.subscription_id)
@@ -43,7 +40,7 @@ class Donation
   end
 
   def record_donation
-    person = { email: email, employer: employer, occupation: occupation }
+    person = { email: self.person.email, employer: employer, occupation: occupation }
     NbDonationCreateJob.perform_later(amount_as_integer, person)
   end
 
@@ -60,15 +57,11 @@ class Donation
     @template_id ||= Activity::DEFAULT_TEMPLATE_IDS[:donate]
   end
 
-  def find_or_create_person
-    @person = Person.find_or_initialize_by(email: email)
-    @person.update(skip_nb_update: true)
-  end
 
   def create_stripe_customer
     Stripe::Customer.create(source: stripe_token,
                             plan: 'one_dollar_monthly',
-                            email: email,
+                            email: person.email,
                             quantity: amount_as_integer/100)
   end
 
@@ -76,7 +69,7 @@ class Donation
     Stripe::Charge.create(amount: amount_as_integer,
                           source: stripe_token,
                           currency: 'usd',
-                          description: "donation from #{email}")
+                          description: "donation from #{self.person.email}")
   end
 
   def amount_as_integer

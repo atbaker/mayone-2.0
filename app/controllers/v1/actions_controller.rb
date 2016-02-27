@@ -1,5 +1,4 @@
 class V1::ActionsController < V1::BaseController
-  before_action :set_person, only: :create
 
   def index
     @activity = Activity.find_by(template_id: params[:activity_template_id])
@@ -18,6 +17,7 @@ class V1::ActionsController < V1::BaseController
 
   def create
     activity = Activity.find_or_create_by(template_id: activity_param)
+    @person = person_from_params
 
     action_attributes = {person: @person, activity: activity}.merge(action_params)
     action = Action.create(action_attributes)
@@ -50,15 +50,6 @@ class V1::ActionsController < V1::BaseController
     params.permit(:utm_source, :utm_medium, :utm_campaign, :source_url,
                   :donation_amount_in_cents, :strike_amount_in_cents,
                   :privacy_status)
-  end
-
-  def person_params
-    params.require(:person).permit(Person::PERMITTED_PUBLIC_FIELDS)
-  end
-
-  def set_person
-    person_params.map{|k,v| person_params[k] = v.try(:strip) || v }
-    @person = Person.create_or_update(person_params) if person_params.present?
   end
 
 end

@@ -1,5 +1,8 @@
 class V1::BaseController < ApplicationController
 
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
+  rescue_from ActionController::ParameterMissing, with: :missing_parameter
+
   protected
 
   def rescue_error_messages
@@ -11,17 +14,30 @@ class V1::BaseController < ApplicationController
     end
   end
 
-  rescue_from ActionController::ParameterMissing do |exception|
-    render json: { error: "#{exception.param} is required" }, status: 422
+  def missing_parameter(error)
+    render json: { error: "#{error.param} is required" }, status: 422
+  end
+
+  def record_not_found(error)
+    render json: {error: error.message}, status: :not_found
+  end
+
+  def default_person_params
+    params.require(:person).permit(Person::ALL_AVAILABLE_ATTRIBUTES)
+  end
+
+  def person_from_params
+    default_person_params.map{|k,v| default_person_params[k] = v.try(:strip) || v }
+    Person.create_or_update(default_person_params) if default_person_params.present?
   end
 
   def create_person_and_action(default_template_id: nil)
-    person_params = params.require(:person).permit(Person::PERMITTED_PUBLIC_FIELDS)
-    person_params.merge! params[:person].slice(*Person::SUPPLEMENTARY_ATTRIBUTES)
+    person_params = default_person_params
+    person = Person.create_or_update(person_params)
+
     action_params = params.permit(:template_id, :utm_source, :utm_medium, :utm_campaign, :source_url)
     action_params[:template_id] ||= default_template_id
 
-    person = Person.create_or_update(person_params)
     person.create_action(action_params.symbolize_keys)
 
     person

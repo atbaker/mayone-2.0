@@ -23,7 +23,7 @@ class V1::PeopleController < V1::BaseController
     if @person.valid?
       render
     else
-      render json: {errors: @person.error_message_output}, status: :unprocessable_entity
+      render json: {error: @person.error_message_output}, status: :unprocessable_entity
     end
   end
 
