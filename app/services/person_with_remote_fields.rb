@@ -13,10 +13,11 @@ class PersonWithRemoteFields < SimpleDelegator
     PERSON_FIELDS + LOCATION_FIELDS + REMOTE_FIELDS
   end
 
-  def initialize(person, attributes)
+  def initialize(the_person, attributes)
     @attributes = attributes
+    @person = the_person
     person.assign_attributes(person_attributes)
-    person.location.assign_attributes(new_location_attributes(person))
+    person.location.assign_attributes(new_location_attributes)
     person.skip_nb_update = true
     super(person)
   end
@@ -30,30 +31,33 @@ class PersonWithRemoteFields < SimpleDelegator
     end
   end
 
-  def person
+  def without_remote_fields
     __getobj__
   end
 
   private
 
-  attr_reader :attributes
+  attr_reader :attributes, :person
 
-  def new_location_attributes(person)
+  def new_location_attributes
     if location_attributes.any?
-      LocationUpdater.new(person.location, location_attributes).new_attributes
+      @_new_location_attributes ||=
+        LocationUpdater.new(person.location, location_attributes).new_attributes
     else
       {}
     end
   end
 
   def update_remote
-    # note if state_abbrev is not passed in, but is found by LocationUpdater,
-    # it will not be included with remote_attributes
     NbPersonPushJob.perform_later(remote_attributes)
   end
 
   def remote_attributes
-    attributes.slice(*self.class.permitted_fields)
+    if state = new_location_attributes[:state]
+      state_hash = { state_abbrev: state.abbrev }
+    end
+    attributes.slice(*self.class.permitted_fields).
+      merge(state_hash || {})
   end
 
   def person_attributes
