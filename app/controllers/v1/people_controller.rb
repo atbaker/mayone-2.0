@@ -30,10 +30,6 @@ class V1::PeopleController < V1::BaseController
   private
 
   def person_params
-    params.require(:person).permit(Person::PERMITTED_PUBLIC_FIELDS)
-  end
-
-  def location_params
-    params.require(:person).permit(:address, :zip)
+    params.require(:person).permit(PersonConstructor.permitted_fields)
   end
 end

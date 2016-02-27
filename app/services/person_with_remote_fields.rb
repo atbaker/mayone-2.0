@@ -6,8 +6,12 @@ class PersonWithRemoteFields < SimpleDelegator
     :address_1, :address_2, :city, :state_abbrev, :zip_code
   ]
   REMOTE_FIELDS = [
-    :employer, :occupation, :skills, :tags
+    :full_name, :employer, :occupation, :skills, :tags
   ]
+
+  def self.permitted_fields
+    PERSON_FIELDS + LOCATION_FIELDS + REMOTE_FIELDS
+  end
 
   def initialize(person, attributes)
     @attributes = attributes
@@ -49,7 +53,7 @@ class PersonWithRemoteFields < SimpleDelegator
   end
 
   def remote_attributes
-    attributes.slice(*(PERSON_FIELDS + LOCATION_FIELDS + REMOTE_FIELDS))
+    attributes.slice(*self.class.permitted_fields)
   end
 
   def person_attributes

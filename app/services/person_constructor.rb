@@ -4,6 +4,16 @@ class PersonConstructor
     zip: :zip_code,
   }
 
+  OLD_REMOTE_FIELDS = [
+    remote_fields: [:event_id, :employer, :occupation, :skills, tags: []]
+  ]
+
+  def self.permitted_fields
+    PersonWithRemoteFields.permitted_fields +
+      KEY_NAME_MAPPINGS.keys +
+      OLD_REMOTE_FIELDS
+  end
+
   def initialize(attributes)
     @attributes = attributes.deep_symbolize_keys
     normalize_attributes
