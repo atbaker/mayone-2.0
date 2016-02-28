@@ -69,8 +69,8 @@ describe LocationUpdater do
       address = { address_1: 'address', zip_code: '12345' }
       zip_code = stub_zip_code_find('12345')
       location = build_stubbed_location
-      updater = LocationUpdater.new(location, address)
       stub_district_find_by_address('district')
+      updater = LocationUpdater.new(location, address)
 
       new_attributes = updater.new_attributes
 
