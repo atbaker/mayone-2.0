@@ -17,22 +17,15 @@ describe PersonWithRemoteFields do
     it "assigns location attributes" do
       person = Person.new
       params = { address_1: 'address' }
+      constructor = stub_location_constructor(input: params)
+      comparer = stub_location_comparer(person: person,
+                                        new_params: constructor.attributes)
       allow(person.location).to receive(:assign_attributes)
-      constructor = spy('constructor')
-      allow(constructor).to receive(:attributes).and_return('attributes')
-      allow(LocationConstructor).to receive(:new).and_return(constructor)
-      comparer = spy('comparer')
-      allow(comparer).to receive(:new_attributes).and_return('the attributes')
-      allow(LocationComparer).to receive(:new).and_return(comparer)
 
       person_with_remote_fields = PersonWithRemoteFields.new(person, params)
 
-      expect(LocationConstructor).to have_received(:new).
-        with(address_1: 'address')
-      expect(LocationComparer).to have_received(:new).
-        with(old: person.location.attributes.symbolize_keys, new: 'attributes')
       expect(person.location).to have_received(:assign_attributes).
-        with('the attributes')
+        with(comparer.new_attributes)
     end
   end
 
@@ -78,5 +71,21 @@ describe PersonWithRemoteFields do
         expect(NbPersonPushJob).not_to have_received(:perform_later)
       end
     end
+  end
+
+  def stub_location_comparer(person:, new_params:, output: 'comparer attrs')
+    comparer = double('comparer', new_attributes: output)
+    allow(LocationComparer).to receive(:new).
+      with(old: person.location.attributes.symbolize_keys, new: new_params).
+      and_return(comparer)
+    comparer
+  end
+
+  def stub_location_constructor(input:, output: 'constructor attrs')
+    constructor = double('constructor', attributes: output)
+    allow(LocationConstructor).to receive(:new).
+      with(input).
+      and_return(constructor)
+    constructor
   end
 end

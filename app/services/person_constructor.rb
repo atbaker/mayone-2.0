@@ -8,8 +8,8 @@ class PersonConstructor
     remote_fields: [:event_id, :employer, :occupation, :skills, tags: []]
   ]
 
-  def self.permitted_fields
-    PersonWithRemoteFields.permitted_fields +
+  def self.permitted_params
+    PersonWithRemoteFields.permitted_params +
       KEY_NAME_MAPPINGS.keys +
       OLD_REMOTE_FIELDS
   end
@@ -41,6 +41,10 @@ class PersonConstructor
     attributes.merge!(attributes.delete(:remote_fields) || {})
   end
 
+  def strip_whitespace_from_values
+    attributes.merge!(attributes){ |k, v1| v1.try(:strip) || v1 }
+  end
+
   def rename_keys
     renameable_keys.each do |key|
       attributes[ KEY_NAME_MAPPINGS[key] ] = attributes.delete(key)
@@ -49,9 +53,5 @@ class PersonConstructor
 
   def renameable_keys
     attributes.keys & KEY_NAME_MAPPINGS.keys
-  end
-
-  def strip_whitespace_from_values
-    attributes.merge!(attributes){ |k, v1| v1.try(:strip) || v1 }
   end
 end
