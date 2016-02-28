@@ -24,18 +24,4 @@ describe Location do
 
     expect(location.errors).to have_key(:person)
   end
-
-  describe "#update_location" do
-    it "updates via LocationUpdater" do
-      updater = spy(:location_updater)
-      allow(LocationUpdater).to receive(:new).and_return(updater)
-      location = Location.new
-
-      location.update_location(:address_params)
-
-      expect(LocationUpdater).to have_received(:new).
-        with(location, :address_params)
-      expect(updater).to have_received(:assign)
-    end
-  end
 end

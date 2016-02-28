@@ -58,7 +58,7 @@ describe V1::PeopleController,  type: :controller do
           end
 
           it "doesn't update location" do
-            expect_any_instance_of(Location).not_to receive(:update_location)
+            expect(LocationConstructor).not_to receive(:new)
 
             get :targets, person: { email: 'user@example.com' }
           end

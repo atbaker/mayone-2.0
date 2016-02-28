@@ -20,10 +20,9 @@ class Location < ActiveRecord::Base
   belongs_to :district
   belongs_to :state
 
-  def update_location(address_params)
-    LocationUpdater.new(self, address_params).assign
-    save
-  end
+  PERMITTED_PARAMS = [
+    :address_1, :address_2, :city, :state, :zip_code, :district
+  ]
 
   def state_abbrev
     (state || district).try(:abbrev)

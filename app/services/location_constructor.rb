@@ -6,13 +6,20 @@ class LocationConstructor
   end
 
   def attributes
-    fields = Location.attribute_names.map(&:to_sym) + [:district, :state]
-    address.compact.slice(*fields)
+    if sufficient_address?
+      address.compact.slice(*Location::PERMITTED_PARAMS)
+    else
+      {}
+    end
   end
 
   private
 
   attr_reader :address
+
+  def sufficient_address?
+    address[:state].present? || find_zip_code.present?
+  end
 
   def validate_and_fill_in_attributes
     validate_zip
@@ -27,15 +34,15 @@ class LocationConstructor
   end
 
   def set_state
-    address[:state] = if address[:state_abbrev]
-                           State.find_by(abbrev: address[:state_abbrev])
-                         else
-                           find_zip_code.try(:state)
-                         end
+    address[:state] ||= if address[:state_abbrev]
+                          State.find_by(abbrev: address[:state_abbrev])
+                        else
+                          find_zip_code.try(:state)
+                        end
   end
 
   def set_district
-    address[:district] = find_district_by_zip || find_district_by_address
+    address[:district] ||= find_district_by_zip || find_district_by_address
   end
 
   def find_district_by_zip

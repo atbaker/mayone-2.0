@@ -41,7 +41,6 @@ class Person < ActiveRecord::Base
   before_create :generate_uuid, unless: :uuid?
   before_save :downcase_email
   after_save :update_nation_builder, unless: :skip_nb_update
-  after_save :save_location
 
   scope :identify, -> identifier {
     includes(:actions)
@@ -247,9 +246,4 @@ class Person < ActiveRecord::Base
   def generate_uuid
     self.uuid = self.class.new_uuid
   end
-
-  def save_location
-    update_location(address: address, zip: zip, city: city, state_abbrev: state_abbrev) if [zip, address, city, state_abbrev].any?
-  end
-
 end

@@ -51,6 +51,14 @@ describe LocationConstructor do
       expect(District).to have_received(:find_by_address).
         with(hash_including(address: 'address', zip_code: zip.zip_code))
     end
+
+    it "returns empty hash if state and zip aren't found" do
+      address = { state_abbrev: 'AA', zip_code: '00000' }
+
+      attributes = LocationConstructor.new(address).attributes
+
+      expect(attributes).to eq({})
+    end
   end
 
   def stub_district_find_by_address

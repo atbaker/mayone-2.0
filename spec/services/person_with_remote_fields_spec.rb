@@ -5,11 +5,11 @@ describe PersonWithRemoteFields do
     it "applies attributes to given person" do
       person = Person.new
       params = { last_name: 'smith' }
-      allow(LocationUpdater).to receive(:new)
+      allow(LocationConstructor).to receive(:new)
 
       person_with_remote_fields = PersonWithRemoteFields.new(person, params)
 
-      expect(LocationUpdater).not_to have_received(:new)
+      expect(LocationConstructor).not_to have_received(:new)
       expect(person_with_remote_fields).to eq person
       expect(person_with_remote_fields.last_name).to eq 'smith'
     end
@@ -17,15 +17,22 @@ describe PersonWithRemoteFields do
     it "assigns location attributes" do
       person = Person.new
       params = { address_1: 'address' }
-      updater = spy('updater')
-      allow(LocationUpdater).to receive(:new).and_return(updater)
+      allow(person.location).to receive(:assign_attributes)
+      constructor = spy('constructor')
+      allow(constructor).to receive(:attributes).and_return('attributes')
+      allow(LocationConstructor).to receive(:new).and_return(constructor)
+      comparer = spy('comparer')
+      allow(comparer).to receive(:new_attributes).and_return('the attributes')
+      allow(LocationComparer).to receive(:new).and_return(comparer)
 
       person_with_remote_fields = PersonWithRemoteFields.new(person, params)
 
-      expect(LocationUpdater).to have_received(:new).
-        with(person.location, { address_1: 'address' })
-      expect(updater).to have_received(:new_attributes)
-      expect(person_with_remote_fields).to eq person
+      expect(LocationConstructor).to have_received(:new).
+        with(address_1: 'address')
+      expect(LocationComparer).to have_received(:new).
+        with(old: person.location.attributes.symbolize_keys, new: 'attributes')
+      expect(person.location).to have_received(:assign_attributes).
+        with('the attributes')
     end
   end
 

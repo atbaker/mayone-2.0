@@ -2,12 +2,10 @@ class PersonWithRemoteFields < SimpleDelegator
   PERSON_FIELDS = [
     :email, :phone, :first_name, :last_name, :is_volunteer
   ]
-  LOCATION_FIELDS = [
-    :address_1, :address_2, :city, :state_abbrev, :zip_code
-  ]
   REMOTE_FIELDS = [
     :full_name, :employer, :occupation, :skills, :tags
   ]
+  LOCATION_FIELDS = Location::PERMITTED_PARAMS + [:state_abbrev]
 
   def self.permitted_fields
     PERSON_FIELDS + LOCATION_FIELDS + REMOTE_FIELDS
@@ -41,11 +39,17 @@ class PersonWithRemoteFields < SimpleDelegator
 
   def new_location_attributes
     if location_attributes.any?
-      @_new_location_attributes ||=
-        LocationUpdater.new(person.location, location_attributes).new_attributes
+      @_new_location_attributes ||= get_new_location_attributes
     else
       {}
     end
+  end
+
+  def get_new_location_attributes
+    new_location = LocationConstructor.new(location_attributes)
+    comparer = LocationComparer.new(old: person.location.attributes.symbolize_keys,
+                                    new: new_location.attributes)
+    comparer.new_attributes
   end
 
   def update_remote

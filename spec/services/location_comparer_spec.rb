@@ -3,10 +3,10 @@ require 'rails_helper'
 describe LocationComparer do
   describe "#different?" do
     different_addresses = [
-      { old_zip_code: 'old', new_zip_code: 'new' },
-      { old_state: 'old', new_state: 'new' },
-      { old_state: 'same', old_city: 'old',
-        new_state: 'same', new_city: 'new' },
+      { old: { zip_code: 'old' }, new: { zip_code: 'new' } },
+      { old: { state: 'old' }, new: { state: 'new' } },
+      { old: { state: 'same', city: 'old' },
+        new: { state: 'same', city: 'new' } },
     ]
 
     different_addresses.each do |different_address|
@@ -20,10 +20,10 @@ describe LocationComparer do
     end
 
     similar_addresses = [
-      { old_zip_code: 'same', new_zip_code: 'same' },
-      { old_state: 'same', new_state: 'same' },
-      { old_state: 'same', old_city: nil,
-        new_state: 'same', new_city: 'new' },
+      { old: { zip_code: 'same' }, new: { zip_code: 'same' } },
+      { old: { state: 'same' }, new: { state: 'same' } },
+      { old: { state: 'same', city: nil },
+        new: { state: 'same', city: 'new' } },
     ]
 
     similar_addresses.each do |similar_address|
@@ -34,6 +34,25 @@ describe LocationComparer do
 
         expect(result).to be_falsy
       end
+    end
+  end
+
+  describe "#new_attributes" do
+    it "returns hash with all location keys if locations are different" do
+      new = { address_1: 'address', zip_code: 'zip' }
+
+      attributes = LocationComparer.new(old: {}, new: new).new_attributes
+
+      expect(attributes).to include(*Location::PERMITTED_PARAMS)
+    end
+
+    it "returns compacted hash if locations are similar" do
+      old = { zip_code: 'same' }
+      new = { address_1: 'address', zip_code: 'same' }
+
+      attributes = LocationComparer.new(old: old, new: new).new_attributes
+
+      expect(attributes).to eq new
     end
   end
 end
