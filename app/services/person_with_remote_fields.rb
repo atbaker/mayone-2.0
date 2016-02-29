@@ -5,31 +5,34 @@ class PersonWithRemoteFields < SimpleDelegator
   REMOTE_FIELDS = [
     :full_name, :employer, :occupation, :skills, :tags
   ]
-  LOCATION_FIELDS = Location::PERMITTED_PARAMS + [:state_abbrev]
 
   def self.permitted_params
-    PERSON_FIELDS + LOCATION_FIELDS + REMOTE_FIELDS
+    PERSON_FIELDS + REMOTE_FIELDS
   end
 
-  def initialize(person, params)
-    @params = params
-    @person = person
-    person.assign_attributes(person_params)
-    person.location.assign_attributes(location_attributes)
+  def initialize(person)
     person.skip_nb_update = true
     super(person)
   end
 
   def save
-    if super
+    if valid?
       update_remote
-      true
-    else
-      false
     end
+    super
   end
 
-  def without_remote_fields
+  def params_for_remote_update
+    # TO DO: refactor
+    permitted_fields = Integration::NationBuilder::PERMITTED_PERSON_PARAMS
+    params = attributes.slice(*changed).
+      merge((location.changed - ['person_id']).any? ? location.as_json : {}).
+      symbolize_keys.
+      slice(*permitted_fields)
+    params.any? ? params.merge(email: email) : {}
+  end
+
+  def undecorated_person
     __getobj__
   end
 
@@ -37,43 +40,22 @@ class PersonWithRemoteFields < SimpleDelegator
 
   attr_reader :params, :person
 
-  def location_attributes
-    @_location_attributes ||= if location_params.any?
-                                get_location_attributes
-                              else
-                                {}
-                              end
-  end
-
-  def get_location_attributes
-    LocationComparer.new(
-      old: person.location.attributes.symbolize_keys,
-      new: LocationConstructor.new(location_params).attributes
-    ).new_attributes
-  end
-
   def update_remote
-    NbPersonPushJob.perform_later(remote_params)
-  end
-
-  def remote_params
-    params.slice(*self.class.permitted_params).
-      merge(state_abbrev_from_location_attributes)
-  end
-
-  def state_abbrev_from_location_attributes
-    if params[:state_abbrev].blank? && state = location_attributes[:state]
-      { state_abbrev: state.abbrev }
-    else
-      {}
+    params = params_for_remote_update
+    if params.any?
+      NbPersonPushJob.perform_later(params)
     end
   end
 
-  def person_params
-    params.slice(*PERSON_FIELDS)
+  def attributes
+    super.merge(remote_attributes)
   end
 
-  def location_params
-    params.slice(*LOCATION_FIELDS)
+  def changed
+    super + remote_attributes.compact.keys.map(&:to_s)
+  end
+
+  def remote_attributes
+    REMOTE_FIELDS.map{ |key| [key.to_s, __send__(key)] }.to_h
   end
 end

@@ -1,91 +1,106 @@
 require 'rails_helper'
 
 describe PersonWithRemoteFields do
-  describe ".new" do
-    it "applies attributes to given person" do
-      person = Person.new
-      params = { last_name: 'smith' }
-      allow(LocationConstructor).to receive(:new)
+  describe "#params_for_remote_update" do
+    it "returns changed attributes" do
+      person = PersonWithRemoteFields.new(Person.new)
+      person.email = 'email'
 
-      person_with_remote_fields = PersonWithRemoteFields.new(person, params)
+      params = person.params_for_remote_update
 
-      expect(LocationConstructor).not_to have_received(:new)
-      expect(person_with_remote_fields).to eq person
-      expect(person_with_remote_fields.last_name).to eq 'smith'
+      expect(params).to eq(email: 'email')
     end
 
-    it "assigns location attributes" do
-      person = Person.new
-      params = { address_1: 'address' }
-      constructor = stub_location_constructor(input: params)
-      comparer = stub_location_comparer(person: person,
-                                        new_params: constructor.attributes)
-      allow(person.location).to receive(:assign_attributes)
+    it "excludes attributes not relevant to CRM" do
+      person = PersonWithRemoteFields.new(Person.new)
+      person.updated_at = Time.now
 
-      person_with_remote_fields = PersonWithRemoteFields.new(person, params)
+      params = person.params_for_remote_update
 
-      expect(person.location).to have_received(:assign_attributes).
-        with(comparer.new_attributes)
+      expect(params).to eq({})
+    end
+
+    it "always includes email" do
+      person = PersonWithRemoteFields.new(Person.new)
+      person.first_name = 'name'
+
+      params = person.params_for_remote_update
+
+      expect(params).to eq(email: nil, first_name: 'name')
+    end
+
+    it "includes remote attributes" do
+      person = PersonWithRemoteFields.new(Person.new)
+      person.employer = 'work'
+
+      params = person.params_for_remote_update
+
+      expect(params).to eq(email: nil, employer: 'work')
+    end
+
+    it "includes location attributes" do
+      person = PersonWithRemoteFields.new(Person.new)
+      person.location.zip_code = '01111'
+
+      params = person.params_for_remote_update
+
+      expect(params).to include(email: nil, zip_code: '01111')
+    end
+
+    it "converts state to string" do
+      person = PersonWithRemoteFields.new(Person.new)
+      state = create(:state)
+      person.location.state = state
+
+      params = person.params_for_remote_update
+
+      expect(params).to include(email: nil, state_abbrev: state.abbrev)
+    end
+
+    it "symbolizes keys" do
+      person = PersonWithRemoteFields.new(Person.new)
+      person.assign_attributes(first_name: 'name', occupation: 'job')
+
+      params = person.params_for_remote_update
+
+      expect(params.keys).to match_array [:email, :first_name, :occupation]
     end
   end
 
   describe "#save" do
-    context "with valid params" do
-      it "returns true" do
-        person = PersonWithRemoteFields.new(Person.new, attributes_for(:person))
-
-        response = person.save
-
-        expect(response).to be true
-      end
-
-      it "updates remote" do
+    context "with valid person" do
+      it "updates remote if applicable fields changed" do
         allow(NbPersonPushJob).to receive(:perform_later)
-        person = PersonWithRemoteFields.
-          new(Person.new, email: 'user@example.com',
-                          tags: ['test'])
+        person = PersonWithRemoteFields.new(Person.new)
+        person.assign_attributes(email: 'user@example.com', tags: ['test'])
 
         person.save
 
         expect(NbPersonPushJob).to have_received(:perform_later).
           with(email: 'user@example.com', tags: ['test'])
       end
-    end
 
-    context "with invalid params" do
-      it "returns false" do
-        person = PersonWithRemoteFields.new(Person.new, {})
-
-        response = person.save
-
-        expect(response).to be false
-      end
-
-      it "doesn't update remote" do
+      it "doesn't update remote if no applicable fields changed" do
         allow(NbPersonPushJob).to receive(:perform_later)
-        person = PersonWithRemoteFields.
-          new(Person.new, occupation: 'work')
+        person = PersonWithRemoteFields.new(create(:person))
+        person.updated_at += 1.hour
 
         person.save
 
         expect(NbPersonPushJob).not_to have_received(:perform_later)
       end
     end
-  end
 
-  def stub_location_comparer(person:, new_params:, output: 'comparer attrs')
-    comparer = double('comparer', new_attributes: output)
-    allow(LocationComparer).to receive(:new).
-      with(old: person.location.attributes.symbolize_keys, new: new_params).
-      and_return(comparer)
-    comparer
-  end
+    context "with invalid person" do
+      it "doesn't update remote" do
+        allow(NbPersonPushJob).to receive(:perform_later)
+        person = PersonWithRemoteFields.new(Person.new)
+        person.assign_attributes(occupation: 'work')
 
-  def stub_location_constructor(input:, output: 'constructor attrs')
-    constructor = double('constructor', attributes: output)
-    allow(LocationConstructor).to receive(:new).
-      with(input).
-      and_return(constructor)
-    constructor
+        person.save
+
+        expect(NbPersonPushJob).not_to have_received(:perform_later)
+      end
+    end
   end
 end

@@ -57,12 +57,12 @@ class Person < ActiveRecord::Base
 
   SUPPLEMENTARY_ATTRIBUTES = [:remote_fields, :full_name] + LOCATION_ATTRIBUTES
   ALL_AVAILABLE_ATTRIBUTES = PERMITTED_PUBLIC_FIELDS + LOCATION_ATTRIBUTES
-  attr_accessor *SUPPLEMENTARY_ATTRIBUTES, :skip_nb_update
+  attr_accessor *SUPPLEMENTARY_ATTRIBUTES, :skip_nb_update, *PersonWithRemoteFields::REMOTE_FIELDS
 
   def self.create_or_update(person_params)
     person = PersonConstructor.new(person_params).build
     person.save
-    person.without_remote_fields # returning PersonWithRemoteFields will break some associations
+    person.undecorated_person # returning PersonWithRemoteFields will break some associations
   end
 
   def self.new_uuid

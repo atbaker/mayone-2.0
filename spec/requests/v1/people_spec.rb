@@ -18,7 +18,8 @@ RSpec.describe "POST /people" do
     expected_params = {
       email: person.email, first_name: 'new name', employer: 'work',
       registered_address: {
-        city: 'city', state: zip.state.abbrev, zip: zip.zip_code
+        address1: nil, address2: nil, city: 'city', state: zip.state.abbrev,
+        zip: zip.zip_code
       }
     }
     expect(Integration::NationBuilder).to have_received(:create_or_update_person).

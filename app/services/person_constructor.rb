@@ -3,13 +3,20 @@ class PersonConstructor
     address: :address_1,
     zip: :zip_code,
   }
-
   OLD_REMOTE_FIELDS = [
     remote_fields: [:event_id, :employer, :occupation, :skills, tags: []]
   ]
+  PERSON_FIELDS = [
+    :email, :phone, :first_name, :last_name, :is_volunteer
+  ]
+  REMOTE_FIELDS = [
+    :full_name, :employer, :occupation, :skills, :tags
+  ]
+  LOCATION_FIELDS = Location::PERMITTED_PARAMS + [:state_abbrev]
 
   def self.permitted_params
     PersonWithRemoteFields.permitted_params +
+      LOCATION_FIELDS +
       KEY_NAME_MAPPINGS.keys +
       OLD_REMOTE_FIELDS
   end
@@ -20,7 +27,10 @@ class PersonConstructor
   end
 
   def build
-    PersonWithRemoteFields.new(find_or_initialize_person, attributes)
+    person = PersonWithRemoteFields.new(find_or_initialize_person)
+    person.assign_attributes(person_params)
+    person.location.assign_attributes(location_attributes(person))
+    person
   end
 
   private
@@ -53,5 +63,28 @@ class PersonConstructor
 
   def renameable_keys
     attributes.keys & KEY_NAME_MAPPINGS.keys
+  end
+
+  def person_params
+    attributes.slice(*PersonWithRemoteFields.permitted_params)
+  end
+
+  def location_attributes(person)
+    @_location_attributes ||= if location_params.any?
+                                get_location_attributes(person)
+                              else
+                                {}
+                              end
+  end
+
+  def get_location_attributes(person)
+    LocationComparer.new(
+      old: person.location.attributes.symbolize_keys,
+      new: LocationConstructor.new(location_params).attributes
+    ).new_attributes
+  end
+
+  def location_params
+    attributes.slice(*LOCATION_FIELDS)
   end
 end

@@ -13,6 +13,10 @@ class NationBuilder
     state_abbrev: :state,
     zip_code:     :zip
   }
+  PERMITTED_PERSON_PARAMS = [
+    :email, :phone, :first_name, :last_name, :is_volunteer,
+    :full_name, :employer, :occupation, :skills, :tags,
+  ] + MAPPINGS_LOCATION.keys
 
   def self.event_params(start_time:, end_time:)
     event = {
@@ -30,6 +34,7 @@ class NationBuilder
   end
 
   def self.person_params(params)
+    # TO DO: refactor
     person = params.symbolize_keys
     address = person.slice(*MAPPINGS_LOCATION.keys)
     if address.any?
