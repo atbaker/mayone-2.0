@@ -27,7 +27,7 @@ class PersonConstructor
   end
 
   def build
-    person = PersonWithRemoteFields.new(find_or_initialize_person)
+    person = find_or_initialize_person_with_remote_fields
     person.assign_attributes(person_params)
     person.location.assign_attributes(location_attributes(person))
     person
@@ -37,8 +37,12 @@ class PersonConstructor
 
   attr_reader :attributes
 
-  def find_or_initialize_person
-    PersonFinder.new(attributes).find || Person.new
+  def find_or_initialize_person_with_remote_fields
+    if person = PersonFinder.new(attributes).find
+      person.becomes(PersonWithRemoteFields)
+    else
+      PersonWithRemoteFields.new
+    end
   end
 
   def normalize_attributes
