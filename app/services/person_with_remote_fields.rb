@@ -17,7 +17,7 @@ class PersonWithRemoteFields < Person
     if valid?
       update_remote
     end
-    super
+    super # will try to save location, but won't complain if it can't
   end
 
   def params_for_remote_update

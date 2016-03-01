@@ -56,15 +56,14 @@ describe PersonConstructor do
       expected_params = { address_1: 'address' }
       person = stub_person_finder(expected_params)
       allow(person).to receive(:becomes).and_return(person)
-      constructor = stub_location_constructor(input: expected_params)
-      comparer = stub_location_comparer(person: person,
-                                        new_params: constructor.attributes)
-      allow(person.location).to receive(:assign_attributes)
+      allow(person.location).to receive(:merge)
+      allow(person.location).to receive(:fill_in_missing_attributes)
 
       PersonConstructor.new(params).build
 
-      expect(person.location).to have_received(:assign_attributes).
-        with(comparer.new_attributes)
+      expect(person.location).to have_received(:merge).
+        with(expected_params)
+      expect(person.location).to have_received(:fill_in_missing_attributes)
     end
   end
 
@@ -84,19 +83,19 @@ describe PersonConstructor do
     person
   end
 
-  def stub_location_comparer(person:, new_params:, output: 'comparer attrs')
-    comparer = double('comparer', new_attributes: output)
-    allow(LocationComparer).to receive(:new).
-      with(old: person.location.attributes.symbolize_keys, new: new_params).
-      and_return(comparer)
-    comparer
-  end
+  # def stub_location_comparer(person:, new_params:, output: 'comparer attrs')
+  #   comparer = double('comparer', new_attributes: output)
+  #   allow(LocationComparer).to receive(:new).
+  #     with(old: person.location.attributes.symbolize_keys, new: new_params).
+  #     and_return(comparer)
+  #   comparer
+  # end
 
-  def stub_location_constructor(input:, output: 'constructor attrs')
-    constructor = double('constructor', attributes: output)
-    allow(LocationConstructor).to receive(:new).
-      with(input).
-      and_return(constructor)
-    constructor
-  end
+  # def stub_location_constructor(input:, output: 'constructor attrs')
+  #   constructor = double('constructor', attributes: output)
+  #   allow(LocationConstructor).to receive(:new).
+  #     with(input).
+  #     and_return(constructor)
+  #   constructor
+  # end
 end

@@ -21,74 +21,61 @@ class PersonConstructor
       OLD_REMOTE_FIELDS
   end
 
-  def initialize(attributes)
-    @attributes = attributes.deep_symbolize_keys
-    normalize_attributes
+  def initialize(params)
+    @params = params.deep_symbolize_keys
+    normalize_params
   end
 
   def build
     person = find_or_initialize_person_with_remote_fields
     person.assign_attributes(person_params)
-    person.location.assign_attributes(location_attributes(person))
+    person.location.merge(location_params)
+    person.location.fill_in_missing_attributes
     person
   end
 
   private
 
-  attr_reader :attributes
+  attr_reader :params
 
   def find_or_initialize_person_with_remote_fields
-    if person = PersonFinder.new(attributes).find
+    # need to allow uuid?
+    if person = PersonFinder.new(params).find
       person.becomes(PersonWithRemoteFields)
     else
       PersonWithRemoteFields.new
     end
   end
 
-  def normalize_attributes
+  def normalize_params
     flatten_remote_fields
     rename_keys
     strip_whitespace_from_values
   end
 
   def flatten_remote_fields
-    attributes.merge!(attributes.delete(:remote_fields) || {})
+    params.merge!(params.delete(:remote_fields) || {})
   end
 
   def strip_whitespace_from_values
-    attributes.merge!(attributes){ |k, v1| v1.try(:strip) || v1 }
+    params.merge!(params){ |k, v1| v1.try(:strip) || v1 }
   end
 
   def rename_keys
     renameable_keys.each do |key|
-      attributes[ KEY_NAME_MAPPINGS[key] ] = attributes.delete(key)
+      params[ KEY_NAME_MAPPINGS[key] ] = params.delete(key)
     end
   end
 
   def renameable_keys
-    attributes.keys & KEY_NAME_MAPPINGS.keys
+    params.keys & KEY_NAME_MAPPINGS.keys
   end
 
   def person_params
-    attributes.slice(*PersonWithRemoteFields.permitted_params)
-  end
-
-  def location_attributes(person)
-    @_location_attributes ||= if location_params.any?
-                                get_location_attributes(person)
-                              else
-                                {}
-                              end
-  end
-
-  def get_location_attributes(person)
-    LocationComparer.new(
-      old: person.location.attributes.symbolize_keys,
-      new: LocationConstructor.new(location_params).attributes
-    ).new_attributes
+    params.slice(*PersonWithRemoteFields.permitted_params)
   end
 
   def location_params
-    attributes.slice(*LOCATION_FIELDS)
+    params.slice(*LOCATION_FIELDS)
   end
 end

@@ -7,7 +7,7 @@ class LocationConstructor
 
   def attributes
     if sufficient_address?
-      address.compact.slice(*Location::PERMITTED_PARAMS)
+      address.compact.slice(*(Location::PERMITTED_PARAMS - [:state_abbrev]))
     else
       {}
     end
