@@ -28,14 +28,14 @@ describe Location do
   it "doesn't validate presence of state if zip_code is present" do
     expect(Location.new(zip_code: '00001')).not_to validate_presence_of(:state)
   end
-  # describe "zip_code format" do
-  #   ['00000', '123456789', '11111-0000'].each do |valid_zip|
-  #     it { should allow_value(valid_zip).for(:zip_code) }
-  #   end
-  #   ['bad', '123456', '1234567890', '11111--0000'].each do |bad_zip|
-  #     it { should_not allow_value(bad_zip).for(:zip_code) }
-  #   end
-  # end
+  describe "zip_code format" do
+    ['00000', '123456789', '11111-0000'].each do |valid_zip|
+      it { should allow_value(valid_zip).for(:zip_code) }
+    end
+    ['bad', '123456', '1234567890', '11111--0000'].each do |bad_zip|
+      it { should_not allow_value(bad_zip).for(:zip_code) }
+    end
+  end
 
   describe "#state_abbrev=" do
     it "sets state" do
