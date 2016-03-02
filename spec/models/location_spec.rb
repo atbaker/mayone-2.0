@@ -92,21 +92,48 @@ describe Location do
         expect(location.city).to eq 'city'
         expect(location.zip_code).to eq '00000'
       end
+
+      it "does nothing if new address is blank" do
+        state = build(:state)
+        location = Location.new(state: state)
+
+        location.merge({})
+
+        expect(location.state).to eq state
+      end
     end
 
     describe "#similar_to?" do
       it "returns true if no new value differs from existing value" do
+        location = Location.new(city: 'city', zip_code: '11111')
+
+        similar = location.similar_to?(address_1: 'address', zip_code: '11111')
+
+        expect(similar).to be true
+      end
+
+      it "doesn't compare fields where either value is null" do
         location = Location.new(address_1: 'address', zip_code: '11111')
 
-        similar = location.similar_to?(city: 'city', zip_code: '11111')
+        similar = location.similar_to?(city: 'city', state_abbrev: 'AA')
 
         expect(similar).to be true
       end
 
       it "returns false if any new value differs from existing value" do
-        location = Location.new(city: 'city', zip_code: '11111')
+        state = build(:state, abbrev: 'AA')
+        location = Location.new(city: 'city', state: state)
 
-        similar = location.similar_to?(city: 'city', zip_code: '00000')
+        similar = location.similar_to?(city: 'city', state_abbrev: 'BB')
+
+        expect(similar).to be false
+      end
+
+      it "tries to guess state of new address if none given" do
+        zip = create(:zip_code)
+        location = Location.new(city: 'city', state: build(:state))
+
+        similar = location.similar_to?(city: 'city', zip_code: zip.zip_code)
 
         expect(similar).to be false
       end

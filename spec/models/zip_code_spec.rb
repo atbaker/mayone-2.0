@@ -31,4 +31,13 @@ describe ZipCode do
     end
   end
 
+  describe ".find_by_zip" do
+    it "converts input to zip-5 and finds zip_code" do
+      allow(ZipCode).to receive(:find_by)
+
+      ZipCode.find_by_zip('111110000')
+
+      expect(ZipCode).to have_received(:find_by).with(zip_code: '11111')
+    end
+  end
 end

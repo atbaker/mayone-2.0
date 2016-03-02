@@ -62,7 +62,7 @@ class Person < ActiveRecord::Base
   def self.create_or_update(person_params)
     person = PersonConstructor.new(person_params).build
     person.save
-    person.becomes(Person) # perhaps becomes(Person) is unnecessary?
+    person
   end
 
   def self.new_uuid

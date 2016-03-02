@@ -53,13 +53,22 @@ class Location < ActiveRecord::Base
   end
 
   def similar_to?(address)
-    local_values = attributes.symbolize_keys.compact
-    new_values = address.compact
-    overlapping_keys = local_values.keys & new_values.keys
-    local_values.slice(*overlapping_keys) == new_values.slice(*overlapping_keys)
+    local_values = as_json.symbolize_keys.compact
+    new_values = address.merge(state_abbrev_for_address(address)).compact
+    intersection = local_values.keys & new_values.keys
+    local_values.slice(*intersection) == new_values.slice(*intersection)
   end
 
   private
+
+  def state_abbrev_for_address(address)
+    if address[:state_abbrev].blank? && address[:zip_code].present? &&
+        abbrev = ZipCode.find_by_zip(address[:zip_code]).try(:state).try(:abbrev)
+      { state_abbrev: abbrev }
+    else
+      {}
+    end
+  end
 
   def blank_attributes
     ADDRESS_FIELDS.map{|k| [k, nil]}.to_h
@@ -87,7 +96,7 @@ class Location < ActiveRecord::Base
   end
 
   def find_zip_code
-    @_find_zip_code ||= zip_code && ZipCode.find_by(zip_code: zip_code.first(5))
+    @_find_zip_code ||= zip_code && ZipCode.find_by_zip(zip_code)
   end
 
   def serializable_hash(options)

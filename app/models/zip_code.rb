@@ -29,6 +29,10 @@ class ZipCode < ActiveRecord::Base
     /\A(?<zip>\d{5})[^\w]?(\d{4})?\z/ =~ string
   end
 
+  def self.find_by_zip(zip)
+    find_by(zip_code: zip.first(5))
+  end
+
   def single_district?
     districts.size == 1
   end
