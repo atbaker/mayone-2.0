@@ -26,7 +26,7 @@ class Location < ActiveRecord::Base
     format: { with: /\A\d{5}[^\w]?(\d{4})?\z/ }
 
   ADDRESS_FIELDS = [
-    :address_1, :address_2, :city, :state, :zip_code, :district
+    :address_1, :address_2, :city, :state_id, :zip_code, :district_id
   ]
   PERMITTED_PARAMS = ADDRESS_FIELDS + [:state_abbrev]
 
@@ -43,43 +43,14 @@ class Location < ActiveRecord::Base
     fill_in_district
   end
 
-  def merge(address)
-    if similar_to?(address)
-      base_values = {}
-    else
-      base_values = blank_attributes
-    end
-    assign_attributes(base_values.merge(address))
-  end
-
-  def similar_to?(address)
-    local_values = as_json.symbolize_keys.compact
-    new_values = address.merge(state_abbrev_for_address(address)).compact
-    intersection = local_values.keys & new_values.keys
-    local_values.slice(*intersection) == new_values.slice(*intersection)
+  def fill_in_state
+    self.state ||= find_zip_code.try(:state)
   end
 
   private
 
-  def state_abbrev_for_address(address)
-    if address[:state_abbrev].blank? && address[:zip_code].present? &&
-        abbrev = ZipCode.find_by_zip(address[:zip_code]).try(:state).try(:abbrev)
-      { state_abbrev: abbrev }
-    else
-      {}
-    end
-  end
-
-  def blank_attributes
-    ADDRESS_FIELDS.map{|k| [k, nil]}.to_h
-  end
-
-  def fill_in_state
-    state || self.state = find_zip_code.try(:state)
-  end
-
   def fill_in_district
-    district || self.district = find_district_by_zip || find_district_by_address
+    self.district ||= find_district_by_zip || find_district_by_address
   end
 
   def find_district_by_zip

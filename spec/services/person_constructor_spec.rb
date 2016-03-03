@@ -52,18 +52,12 @@ describe PersonConstructor do
     end
 
     it "assigns location attributes" do
-      params = { address: 'address' }
-      expected_params = { address_1: 'address' }
-      person = stub_person_finder(expected_params)
-      allow(person).to receive(:becomes).and_return(person)
-      allow(person.location).to receive(:merge)
-      allow(person.location).to receive(:fill_in_missing_attributes)
+      params = { city: 'city' }
+      stub_person_finder(params)
 
-      PersonConstructor.new(params).build
+      person = PersonConstructor.new(params).build
 
-      expect(person.location).to have_received(:merge).
-        with(expected_params)
-      expect(person.location).to have_received(:fill_in_missing_attributes)
+      expect(person.location.city).to eq 'city'
     end
   end
 

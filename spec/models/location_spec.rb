@@ -48,6 +48,17 @@ describe Location do
     end
   end
 
+  describe "#fill_in_state" do
+    it "sets state based on zip" do
+      zip = create(:zip_code)
+      location = Location.new(zip_code: zip.zip_code)
+
+      location.fill_in_state
+
+      expect(location.state).to eq zip.state
+    end
+  end
+
   describe "#fill_in_missing_attributes" do
     it "sets state and district based on zip, if possible" do
       zip = create(:zip_code)
@@ -72,85 +83,19 @@ describe Location do
       expect(District).to have_received(:find_by_address).
         with(address: 'address', city: nil, zip_code: 'zip')
     end
+  end
 
-    describe "#merge" do
-      it "assigns attributes" do
-        location = Location.new
+  describe "#as_json" do
+    it "includes state_abbrev and not state" do
+      state = build(:state)
+      location = Location.new(address_1: 'address', state: state)
 
-        location.merge(address_1: 'foo', zip_code: '00000')
+      json = location.as_json
 
-        expect(location.address_1).to eq 'foo'
-        expect(location.zip_code).to eq '00000'
-      end
-
-      it "clears old values if new address is different" do
-        location = Location.new(address_1: 'address', zip_code: '11111')
-
-        location.merge(city: 'city', zip_code: '00000')
-
-        expect(location.address_1).to be_nil
-        expect(location.city).to eq 'city'
-        expect(location.zip_code).to eq '00000'
-      end
-
-      it "does nothing if new address is blank" do
-        state = build(:state)
-        location = Location.new(state: state)
-
-        location.merge({})
-
-        expect(location.state).to eq state
-      end
-    end
-
-    describe "#similar_to?" do
-      it "returns true if no new value differs from existing value" do
-        location = Location.new(city: 'city', zip_code: '11111')
-
-        similar = location.similar_to?(address_1: 'address', zip_code: '11111')
-
-        expect(similar).to be true
-      end
-
-      it "doesn't compare fields where either value is null" do
-        location = Location.new(address_1: 'address', zip_code: '11111')
-
-        similar = location.similar_to?(city: 'city', state_abbrev: 'AA')
-
-        expect(similar).to be true
-      end
-
-      it "returns false if any new value differs from existing value" do
-        state = build(:state, abbrev: 'AA')
-        location = Location.new(city: 'city', state: state)
-
-        similar = location.similar_to?(city: 'city', state_abbrev: 'BB')
-
-        expect(similar).to be false
-      end
-
-      it "tries to guess state of new address if none given" do
-        zip = create(:zip_code)
-        location = Location.new(city: 'city', state: build(:state))
-
-        similar = location.similar_to?(city: 'city', zip_code: zip.zip_code)
-
-        expect(similar).to be false
-      end
-    end
-
-    describe "#as_json" do
-      it "includes state_abbrev and not state" do
-        state = build(:state)
-        location = Location.new(address_1: 'address', state: state)
-
-        json = location.as_json
-
-        expect(json).to eq({
-          'address_1' => 'address', 'address_2' => nil, 'city' => nil,
-          'state_abbrev' => state.abbrev, 'zip_code' => nil
-        })
-      end
+      expect(json).to eq({
+        'address_1' => 'address', 'address_2' => nil, 'city' => nil,
+        'state_abbrev' => state.abbrev, 'zip_code' => nil
+      })
     end
   end
 end
