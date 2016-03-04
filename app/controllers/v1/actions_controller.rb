@@ -16,8 +16,11 @@ class V1::ActionsController < V1::BaseController
   end
 
   def create
+    # need to handle invalid person
     activity = Activity.find_or_create_by(template_id: activity_param)
-    @person = person_from_params
+    @person = if person_params.any? # temporary fix
+                PersonConstructor.new(person_params).build.tap(&:save)
+              end
 
     action_attributes = {person: @person, activity: activity}.merge(action_params)
     action = Action.create(action_attributes)
@@ -52,4 +55,7 @@ class V1::ActionsController < V1::BaseController
                   :privacy_status)
   end
 
+  def person_params
+    params.require(:person).permit(PersonConstructor.permitted_params)
+  end
 end

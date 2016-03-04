@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "POST /donation" do
-  context "recurring payment, existing person" do
+  context "with recurring payment, existing person" do
     it "creates subscription and action and updates CRM" do
       person = create(:person)
       customer = stub_stripe_customer_create(id: 'customer id',
@@ -28,7 +28,7 @@ RSpec.describe "POST /donation" do
     end
   end
 
-  context "simple payment, new person" do
+  context "with simple payment, new person" do
     it "creates person and action and updates CRM" do
       allow(Stripe::Charge).to receive(:create)
       allow(NbDonationCreateJob).to receive(:perform_later)

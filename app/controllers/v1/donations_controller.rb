@@ -15,7 +15,7 @@ class V1::DonationsController < V1::BaseController
   #  * utm_campaign - action utm_campaign
   #  * source_url - action source_url
   def create
-    person = person_from_params
+    person = PersonConstructor.new(person_params).build.tap(&:save) # temporary fix
     donation = Donation.new(donation_params.merge(person: person))
     if donation.process
       render json: { status: 'success' }
@@ -32,4 +32,7 @@ class V1::DonationsController < V1::BaseController
                   :source_url, :template_id)
   end
 
+  def person_params
+    params.require(:person).permit(PersonConstructor.permitted_params)
+  end
 end
