@@ -2,14 +2,19 @@ class PersonWithRemoteFields < Person
   PERSON_FIELDS = [
     :email, :phone, :first_name, :last_name, :is_volunteer
   ]
-  REMOTE_FIELDS = [
-    :full_name, :employer, :occupation, :skills, :tags
+  REMOTE_PARAMS = [
+    :event_id, :employer, :occupation, skills: [], tags: []
   ]
+  REMOTE_FIELDS = REMOTE_PARAMS.map { |key| key.try(:keys) || key }.flatten
 
   attr_accessor *REMOTE_FIELDS
 
-  def self.permitted_params
+  def self.permitted_fields
     PERSON_FIELDS + REMOTE_FIELDS
+  end
+
+  def self.permitted_params
+    PERSON_FIELDS + REMOTE_PARAMS
   end
 
   def save
@@ -53,12 +58,12 @@ class PersonWithRemoteFields < Person
   end
 
   def remote_attributes
-    REMOTE_FIELDS.map{ |key| [key.to_s, __send__(key)] }.to_h
+    REMOTE_FIELDS.map { |key| [key.to_s, __send__(key)] }.to_h
   end
 
   def location_params
-    if (location.changed - ['person_id']).any?
-      location.as_json
+    if (location.changed & Location::ADDRESS_FIELDS.map(&:to_s)).any?
+      location.as_json  # maybe dangerous to reuse serializable_hash here?
     else
       {}
     end

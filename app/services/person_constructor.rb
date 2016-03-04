@@ -3,22 +3,17 @@ class PersonConstructor
     address: :address_1,
     zip: :zip_code,
   }
-  OLD_REMOTE_FIELDS = [
-    remote_fields: [:event_id, :employer, :occupation, :skills, tags: []]
+  OLD_REMOTE_PARAMS = [
+    remote_fields: PersonWithRemoteFields::REMOTE_PARAMS
   ]
-  PERSON_FIELDS = [
-    :email, :phone, :first_name, :last_name, :is_volunteer
-  ]
-  REMOTE_FIELDS = [
-    :full_name, :employer, :occupation, :skills, :tags
-  ]
-  LOCATION_FIELDS = Location::PERMITTED_PARAMS + [:state_abbrev]
+  LOCATION_FIELDS = Location::PERMITTED_PARAMS
 
   def self.permitted_params
     PersonWithRemoteFields.permitted_params +
       LOCATION_FIELDS +
       KEY_NAME_MAPPINGS.keys +
-      OLD_REMOTE_FIELDS
+      OLD_REMOTE_PARAMS +
+      [:uuid]
   end
 
   def initialize(params)
@@ -29,9 +24,7 @@ class PersonConstructor
   def build
     person = find_or_initialize_person_with_remote_fields
     person.assign_attributes(person_params)
-    new_location = LocationComparable.new(location_params)
-    person.location.becomes(LocationComparable).merge(new_location)
-    person.location.fill_in_missing_attributes
+    assign_location_attributes(person.location)
     person
   end
 
@@ -40,11 +33,18 @@ class PersonConstructor
   attr_reader :params
 
   def find_or_initialize_person_with_remote_fields
-    # need to allow uuid?
     if person = PersonFinder.new(params).find
       person.becomes(PersonWithRemoteFields)
     else
       PersonWithRemoteFields.new
+    end
+  end
+
+  def assign_location_attributes(location)
+    if location_params.any?
+      new_location = LocationComparable.new(location_params)
+      location.becomes(LocationComparable).merge(new_location)
+      location.fill_in_missing_attributes
     end
   end
 
@@ -73,7 +73,7 @@ class PersonConstructor
   end
 
   def person_params
-    params.slice(*PersonWithRemoteFields.permitted_params)
+    params.slice(*PersonWithRemoteFields.permitted_fields)
   end
 
   def location_params

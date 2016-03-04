@@ -14,14 +14,14 @@ RSpec.describe "POST /people" do
     nb_client = stub_nation_builder_client
 
     perform_enqueued_jobs do
-      post "/people", person: { email: person.email, first_name: 'new name',
+      post "/people", person: { uuid: person.uuid, first_name: 'new name',
                                 city: 'city', zip: zip.zip_code,
-                                remote_fields: { employer: 'work' } },
+                                remote_fields: { tags: ['tag', 'other tag'] } },
                       actions: [activity.template_id]
     end
 
     expect(nb_client).to have_received(:call).with(:people, :push, person: {
-      email: person.email, first_name: 'new name', employer: 'work',
+      email: person.email, first_name: 'new name', tags: ['tag', 'other tag'],
       registered_address: {
         address1: nil, address2: nil, city: 'city', state: zip.state.abbrev,
         zip: zip.zip_code
