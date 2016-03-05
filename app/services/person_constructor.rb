@@ -24,7 +24,7 @@ class PersonConstructor
   def build
     person = find_or_initialize_person_with_remote_fields
     person.assign_attributes(person_params)
-    assign_location_attributes(person.location)
+    assign_location_attributes(person)
     person
   end
 
@@ -40,11 +40,11 @@ class PersonConstructor
     end
   end
 
-  def assign_location_attributes(location)
+  def assign_location_attributes(person)
     if location_params.any?
       new_location = LocationComparable.new(location_params)
-      location.becomes(LocationComparable).merge(new_location)
-      location.fill_in_missing_attributes
+      person.location.becomes(LocationComparable).merge(new_location)
+      person.location.fill_in_missing_attributes
     end
   end
 

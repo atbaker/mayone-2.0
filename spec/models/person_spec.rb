@@ -44,97 +44,6 @@ describe Person do
     end
   end
 
-  describe ".create_or_update" do
-    context "new record" do
-      it "creates record with appropriate values" do
-        create_params = { email: 'user@example.com',
-          phone:        '555-555-1111',
-          first_name:   'Bob',
-          last_name:    'Garfield'}
-        expected_params = create_params
-        expected_params[:phone] = PhonyRails.normalize_number(create_params[:phone], default_country_code: 'US')
-
-        person = Person.create_or_update(create_params.dup)
-        expect(person.slice(*create_params.keys).values).to eq expected_params.values
-      end
-      it "sets up delayed job in NationBuilder" do
-        person = FactoryGirl.build(:person)
-        person_params = person.attributes.symbolize_keys
-        allow(NbPersonPushJob).to receive(:perform_later).and_call_original
-
-        person = Person.create!(person_params.dup)
-
-        expect(NbPersonPushJob).to have_received(:perform_later).with(person_params.compact)
-      end
-      it "sends appropriate values to NationBuilder" do
-        allow(NbPersonPushJob).to receive(:perform_later).and_call_original
-        remote_fields = {tags:['tags'], skills: 'skills'}
-        person_params = { email: 'user@example.com',
-          phone:        '+15555551111',
-          first_name:   'Bob',
-          last_name:    'Garfield',
-        }
-        post_params = person_params.merge(remote_fields: remote_fields)
-        expected_params = person_params.merge(remote_fields)
-
-        person = Person.create_or_update(post_params)
-
-        expect(person.attributes.values & person_params.values).to eq(person_params.values)
-        expect(NbPersonPushJob).to have_received(:perform_later).with(expected_params)
-      end
-    end
-    context "existing record" do
-      it "updates record with appropriate values" do
-        person = FactoryGirl.create(:person)
-        update_params = { email: person.email, phone: '555-555-1111' }
-
-        Person.create_or_update(update_params.dup)
-        person.reload
-
-        expect(person.email).to eq update_params[:email]
-        expect(person.phone).to eq PhonyRails.normalize_number(update_params[:phone], default_country_code: 'US')
-      end
-      it "finds existing record even when email case doesn't match" do
-        person = FactoryGirl.create(:person)
-        random_case_email = person.email.gsub(/./){|c| rand(2)>0 ? c : c.swapcase }
-        update_params = { email: random_case_email, phone: '555-555-1111' }
-
-        Person.create_or_update(update_params.dup)
-        person.reload
-
-        expect(person.email).to eq update_params[:email].downcase
-        expect(person.phone).to eq PhonyRails.normalize_number(update_params[:phone], default_country_code: 'US')
-      end
-      it "find existing record by phone with string keys" do
-        person = FactoryGirl.create(:person)
-        find_or_update_params = { phone: person.phone }
-
-        expect{
-          @updated_person = Person.create_or_update(find_or_update_params)
-        }.not_to change{ Person.count }
-        expect(@updated_person.id).to eq(person.id)
-      end
-      it "find existing record by phone after email search fails" do
-        person = FactoryGirl.create(:person, email: nil)
-        find_or_update_params = { phone: person.phone, email: 'fake@mail.com' }
-
-        expect{
-          @updated_person = Person.create_or_update(find_or_update_params)
-        }.not_to change{ Person.count }
-        expect(@updated_person.id).to eq(person.id)
-      end
-      it "finds user based on uuid, if present" do
-        person = FactoryGirl.create(:person)
-        update_params = { email: 'new_unique_email_address@example.com', uuid: person.uuid }
-
-        Person.create_or_update(update_params.dup)
-        person.reload
-
-        expect(person.email).to eq update_params[:email]
-      end
-    end
-  end
-
   describe "#last_initial" do
     it "returns first letter of last name" do
       person = Person.new(last_name: "Smith")
@@ -289,38 +198,6 @@ describe Person do
           expect(voter.target_legislators(count: 2).count).to eq 2
         end
 
-      end
-    end
-  end
-
-  describe "#update_nation_builder" do
-    context "creating new user" do
-      it "sends call to update NationBuilder" do
-        expect_any_instance_of(Person).to receive(:update_nation_builder).and_call_original
-        expect(NbPersonPushJob).to receive(:perform_later).
-          with(email: 'user@example.com', phone: PhonyRails.normalize_number('6305551234', default_country_code: 'US') )
-        Person.create(email: 'user@example.com', phone:'630-555-1234')
-      end
-    end
-    context "updating existing user" do
-      let(:person) { FactoryGirl.create(:person, :with_nb_callback) }
-      before { expect(person).to receive(:update_nation_builder).and_call_original }
-
-      it "sends remote_fields to NationBuilder if present" do
-        expect(NbPersonPushJob).to receive(:perform_later).
-          with(email: person.email, phone: person.phone, tags: ['test'], foo: 'bar')
-        person.update(remote_fields: { tags: ['test'], foo: 'bar' })
-      end
-
-      it "sends call to update NationBuilder if relevant field changed" do
-        expect(NbPersonPushJob).to receive(:perform_later).
-          with(email: person.email, phone: person.phone, first_name: 'Bob')
-        person.update(first_name: 'Bob')
-      end
-
-      it "doesn't send call to update NationBuilder if no relevant field changed" do
-        expect(NbPersonPushJob).not_to receive(:perform_later)
-        person.update(phone: person.phone)
       end
     end
   end

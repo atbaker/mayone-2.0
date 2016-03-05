@@ -40,7 +40,6 @@ class Person < ActiveRecord::Base
 
   before_create :generate_uuid, unless: :uuid?
   before_save :downcase_email
-  after_save :update_nation_builder, unless: :skip_nb_update
 
   scope :identify, -> identifier {
     includes(:actions)
@@ -48,22 +47,11 @@ class Person < ActiveRecord::Base
   }
 
   alias_method :location_association, :location
-  delegate :update_location, :district, :state, to: :location
+  delegate :district, :state, to: :location
 
-  FIELDS_ALSO_ON_NB = %w[email first_name last_name is_volunteer phone]
-  PERMITTED_PUBLIC_FIELDS = [:email, :phone, :first_name, :last_name, :full_name, :address, :city, :state_abbrev, :zip, :is_volunteer, remote_fields: [:event_id, :employer, :occupation, :skills, tags: []]]
-  LOCATION_ATTRIBUTES = [:address, :zip, :city, :state_abbrev]
   DEFAULT_TARGET_COUNT = 100
 
-  SUPPLEMENTARY_ATTRIBUTES = [:remote_fields, :full_name] + LOCATION_ATTRIBUTES
-  ALL_AVAILABLE_ATTRIBUTES = PERMITTED_PUBLIC_FIELDS + LOCATION_ATTRIBUTES
-  attr_accessor *SUPPLEMENTARY_ATTRIBUTES, :skip_nb_update
-
-  def self.create_or_update(person_params)
-    person = PersonConstructor.new(person_params).build
-    person.save
-    person
-  end
+  attr_accessor :remote_fields
 
   def self.new_uuid
     SecureRandom.uuid
@@ -178,15 +166,18 @@ class Person < ActiveRecord::Base
 
     #merge attributes
     updated_attributes = other.attributes.compact!.merge(attributes.compact!)
-    update(updated_attributes)
-    location_attrs = updated_attributes.slice(LOCATION_ATTRIBUTES)
-    update_location(location_attrs) if location_attrs.any?
+    assign_attributes(updated_attributes)
+
+    # note location merges in opposite direction
+    location.becomes(LocationComparable).
+      merge(other.location.becomes(LocationComparable))
 
     #cleanup
     other.reload.destroy
     save!
   end
 
+  # is this method ever called?
   def self.merge_duplicates!(records, compare_on:)
     records.each do |record|
       next if record.nil?
@@ -232,7 +223,7 @@ class Person < ActiveRecord::Base
   private
 
   def update_nation_builder
-    relevant_fields = changed & FIELDS_ALSO_ON_NB
+    relevant_fields = changed & %w[email first_name last_name is_volunteer phone]
     if relevant_fields.any? || remote_fields.present?
       nb_attributes = self.slice(:email, :phone, *relevant_fields).merge(remote_fields || {}).compact
       NbPersonPushJob.perform_later(nb_attributes.symbolize_keys)

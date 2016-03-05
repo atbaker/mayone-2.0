@@ -12,7 +12,7 @@ class V1::GoogleFormsController < V1::BaseController
   #    Google's servers infer type.
   #    example: {javascript_skill_level: 'advanced', legislator_nominatoin: 'Jack Russel'}
   def create
-    person = Person.create_or_update(person_params)
+    person = PersonConstructor.new(person_params).build.tap(&:save) # temporary fix
     if google_form_data_params.values.any?(&:present?) || (person && person.valid?)
       GoogleFormsSubmitJob.perform_later(google_form_metadata_params[:form_id], google_form_mapped_data)
       submitted = true
@@ -25,12 +25,15 @@ class V1::GoogleFormsController < V1::BaseController
   private
 
   def person_params
+    params.require(:person).permit(PersonConstructor.permitted_params)
+  end
+  def person_params
     @person_params ||= fetch_person_params
   end
 
   def fetch_person_params
-    person_params = params.permit(Person::PERMITTED_PUBLIC_FIELDS)
-    nested_person_params = params.permit(person: Person::PERMITTED_PUBLIC_FIELDS)[:person]  || {}
+    person_params = params.permit(PersonConstructor.permitted_params)
+    nested_person_params = params.permit(person: PersonConstructor.permitted_params)[:person]  || {}
     person_params.merge(nested_person_params)
   end
 

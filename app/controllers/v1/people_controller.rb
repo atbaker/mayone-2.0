@@ -19,7 +19,7 @@ class V1::PeopleController < V1::BaseController
   end
 
   def targets
-    @person = Person.create_or_update(person_params)
+    @person = PersonConstructor.new(person_params).build.tap(&:save) # temporary fix
     if @person.valid?
       render
     else

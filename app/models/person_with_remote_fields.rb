@@ -18,7 +18,6 @@ class PersonWithRemoteFields < Person
   end
 
   def save(args = {})
-    self.skip_nb_update = true
     if valid?
       update_remote
     end

@@ -8,11 +8,12 @@ describe V1::Ivr::CallsController,  type: :controller do
       @fake_sid = 'werl1l2312'
       call = FactoryGirl.build(:call, remote_id: @fake_sid)
 
-      @person = double('person')
+      @person = double('person', save: true)
       allow(@person).to receive(:create_action)
       allow(@person).to receive_message_chain(:calls, :create).and_return(call)
       allow(@person).to receive_message_chain(:phone).and_return(@target_phone)
-      allow(Person).to receive_message_chain(:create_or_update).and_return(@person)
+      constructor = double('constructor', build: @person)
+      allow(PersonConstructor).to receive(:new).and_return(constructor)
 
       twilio_call = double('twilio_call')
       allow(twilio_call).to receive(:sid).and_return(@fake_sid)
