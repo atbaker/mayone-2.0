@@ -6,11 +6,11 @@ class PersonConstructor
   OLD_REMOTE_PARAMS = [
     remote_fields: PersonWithRemoteFields::REMOTE_PARAMS
   ]
-  LOCATION_FIELDS = Location::PERMITTED_PARAMS
 
   def self.permitted_params
-    PersonWithRemoteFields.permitted_params +
-      LOCATION_FIELDS +
+    Person::PERMITTED_PARAMS +
+      PersonWithRemoteFields::REMOTE_PARAMS +
+      Location::PERMITTED_PARAMS +
       KEY_NAME_MAPPINGS.keys +
       OLD_REMOTE_PARAMS +
       [:uuid]
@@ -73,10 +73,10 @@ class PersonConstructor
   end
 
   def person_params
-    params.slice(*PersonWithRemoteFields.permitted_fields)
+    params.slice(*PersonWithRemoteFields::ALL_FIELDS)
   end
 
   def location_params
-    params.slice(*LOCATION_FIELDS)
+    params.slice(*Location::PERMITTED_PARAMS)
   end
 end

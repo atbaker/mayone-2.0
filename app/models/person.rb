@@ -50,6 +50,7 @@ class Person < ActiveRecord::Base
   delegate :district, :state, to: :location
 
   DEFAULT_TARGET_COUNT = 100
+  PERMITTED_PARAMS = [:email, :phone, :first_name, :last_name, :is_volunteer]
 
   attr_accessor :remote_fields
 

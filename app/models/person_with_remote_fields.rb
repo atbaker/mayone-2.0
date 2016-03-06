@@ -1,21 +1,12 @@
 class PersonWithRemoteFields < Person
-  PERSON_FIELDS = [
-    :email, :phone, :first_name, :last_name, :is_volunteer
-  ]
-  REMOTE_PARAMS = [
-    :event_id, :employer, :occupation, skills: [], tags: []
-  ]
-  REMOTE_FIELDS = REMOTE_PARAMS.map { |key| key.try(:keys) || key }.flatten
+  REMOTE_STRINGS = [:event_id, :employer, :occupation]
+  REMOTE_ARRAYS = [:skills, :tags]
+  REMOTE_FIELDS = REMOTE_STRINGS + REMOTE_ARRAYS
+  REMOTE_PARAMS = REMOTE_STRINGS + REMOTE_ARRAYS.map { |k| { k => [] } }
+  ALL_FIELDS = Person::PERMITTED_PARAMS + REMOTE_FIELDS
 
   attr_accessor *REMOTE_FIELDS
 
-  def self.permitted_fields
-    PERSON_FIELDS + REMOTE_FIELDS
-  end
-
-  def self.permitted_params
-    PERSON_FIELDS + REMOTE_PARAMS
-  end
 
   def save(args = {})
     if valid?
