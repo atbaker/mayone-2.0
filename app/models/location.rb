@@ -44,7 +44,7 @@ class Location < ActiveRecord::Base
   end
 
   def fill_in_state
-    self.state ||= find_zip_code.try(:state)
+    self.state_id ||= find_zip_code.try(:state_id)
   end
 
   private
