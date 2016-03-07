@@ -8,12 +8,11 @@ class PersonConstructor
   ]
 
   def self.permitted_params
-    Person::PERMITTED_PARAMS +
+    Person::PERMITTED_PARAMS | PersonFinder::SEARCH_KEYS +
       PersonWithRemoteFields::REMOTE_PARAMS +
       Location::PERMITTED_PARAMS +
       KEY_NAME_MAPPINGS.keys +
-      OLD_REMOTE_PARAMS +
-      [:uuid] # this should come from PersonFinder
+      OLD_REMOTE_PARAMS
   end
 
   def initialize(params)

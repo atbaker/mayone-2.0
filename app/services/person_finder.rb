@@ -1,4 +1,6 @@
 class PersonFinder
+  SEARCH_KEYS = [:uuid, :email, :phone]
+
   def initialize(attributes)
     @attributes = attributes
   end
@@ -28,6 +30,6 @@ class PersonFinder
   end
 
   def search_values
-    attributes.slice(:uuid, :email, :phone).compact
+    attributes.slice(*SEARCH_KEYS).compact
   end
 end

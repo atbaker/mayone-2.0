@@ -23,6 +23,14 @@ class PersonWithRemoteFields < Person
     end
   end
 
+  def custom_fields
+    @_custom_fields ||= {}
+  end
+
+  def custom_fields=(fields)
+    custom_fields.merge!(fields)
+  end
+
   private
 
   def update_remote
@@ -44,7 +52,8 @@ class PersonWithRemoteFields < Person
       merge(remote_attributes.compact).
       merge(location_params).
       symbolize_keys.
-      slice(*Integration::NationBuilder::PERMITTED_PERSON_PARAMS)
+      slice(*Integration::NationBuilder::PERMITTED_PERSON_PARAMS).
+      merge(custom_fields)
   end
 
   def remote_attributes

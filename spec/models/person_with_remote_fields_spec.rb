@@ -47,6 +47,15 @@ describe PersonWithRemoteFields do
       expect(params).to include(phone: nil, zip_code: '01111')
     end
 
+    it "includes custom fields" do
+      person = PersonWithRemoteFields.new
+      person.custom_fields[:foo] = 'bar'
+
+      params = person.params_for_remote_update
+
+      expect(params).to include(phone: nil, foo: 'bar')
+    end
+
     it "converts state to string" do
       person = PersonWithRemoteFields.new
       state = create(:state)
