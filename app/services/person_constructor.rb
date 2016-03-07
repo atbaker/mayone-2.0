@@ -13,7 +13,7 @@ class PersonConstructor
       Location::PERMITTED_PARAMS +
       KEY_NAME_MAPPINGS.keys +
       OLD_REMOTE_PARAMS +
-      [:uuid]
+      [:uuid] # this should come from PersonFinder
   end
 
   def initialize(params)

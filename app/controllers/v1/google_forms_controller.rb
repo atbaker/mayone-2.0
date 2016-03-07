@@ -25,9 +25,6 @@ class V1::GoogleFormsController < V1::BaseController
   private
 
   def person_params
-    params.require(:person).permit(PersonConstructor.permitted_params)
-  end
-  def person_params
     @person_params ||= fetch_person_params
   end
 
