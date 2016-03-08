@@ -6,7 +6,7 @@ describe Ivr::RecordingsController,  type: :controller do
     @fake_url = fake_url || "https://website.com/#{SecureRandom.uuid}.mp3"
 
     person = FactoryGirl.build(:person)
-    allow(person).to receive(:update_remote_attributes)
+    # allow(person).to receive(:update_remote_attributes)
 
     recording = double('recording')
     allow(recording).to receive(:recording_url).and_return(@fake_url)

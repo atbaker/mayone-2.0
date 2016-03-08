@@ -34,4 +34,24 @@ RSpec.describe Ivr::Recording, type: :model do
     end
   end
 
+  describe "#post_to_crm" do
+    it "it updates NationBuilder" do
+      recording = build(:ivr_recording)
+      person = recording.person
+      allow(person).to receive(:becomes).and_return(person)
+      allow(person).to receive(:update)
+
+      recording.save
+
+      tag = Activity::DEFAULT_TEMPLATE_IDS[:record_message]
+      field_name = "recorded_message_#{recording.call.campaign_ref}".downcase
+      expected = {
+        tags: [tag],
+        custom_fields: {
+          field_name => recording.recording_url
+        }
+      }
+      expect(person).to have_received(:update).with(expected)
+    end
+  end
 end
