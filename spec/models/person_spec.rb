@@ -213,7 +213,8 @@ describe Person do
         allow(NbPersonPushJob).to receive(:perform_later)
         expected_arguments = {
           email: subject.email,
-          phone: subject.phone,
+          # does it need phone and email?
+          # phone: subject.phone,
           representative_call_attempts: 2,
           representative_calls_count: 1
         }

@@ -196,6 +196,7 @@ class Person < ActiveRecord::Base
     end.compact
   end
 
+  # is this ever called?
   def self.update_nation_builder_call_counts!
     select(:phone,:email,:id).includes(:connections).find_each do |person|
       person.set_remote_call_counts!
@@ -204,7 +205,9 @@ class Person < ActiveRecord::Base
 
   def set_remote_call_counts!
     remote_fields = {representative_call_attempts: representative_call_attempts, representative_calls_count: representative_calls_count}
-    update_remote_attributes(remote_fields) if representative_call_attempts > 0
+    if representative_call_attempts > 0
+      becomes(PersonWithRemoteFields).update(custom_fields: remote_fields)
+    end
   end
 
   def representative_call_attempts
@@ -215,21 +218,7 @@ class Person < ActiveRecord::Base
     connections.completed.count
   end
 
-  def update_remote_attributes(remote_attributes)
-    self.remote_fields ||= {}
-    remote_fields.merge!(remote_attributes)
-    update_nation_builder
-  end
-
   private
-
-  def update_nation_builder
-    relevant_fields = changed & %w[email first_name last_name is_volunteer phone]
-    if relevant_fields.any? || remote_fields.present?
-      nb_attributes = self.slice(:email, :phone, *relevant_fields).merge(remote_fields || {}).compact
-      NbPersonPushJob.perform_later(nb_attributes.symbolize_keys)
-    end
-  end
 
   def downcase_email
     email && self.email = email.downcase
