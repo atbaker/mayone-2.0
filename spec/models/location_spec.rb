@@ -48,25 +48,25 @@ describe Location do
     end
   end
 
-  describe "#fill_in_state" do
+  describe "#set_state" do
     it "sets state based on zip" do
       zip = create(:zip_code)
       location = Location.new(zip_code: zip.zip_code)
 
-      location.fill_in_state
+      location.set_state
 
       expect(location.state).to eq zip.state
     end
   end
 
-  describe "#fill_in_missing_attributes" do
+  describe "#set_missing_attributes" do
     it "sets state and district based on zip, if possible" do
       zip = create(:zip_code)
       district = create(:district)
       zip.districts << district
       location = Location.new(zip_code: zip.zip_code)
 
-      location.fill_in_missing_attributes
+      location.set_missing_attributes
 
       expect(location.district).to eq district
       expect(location.state).to eq zip.state
@@ -77,7 +77,7 @@ describe Location do
       district = District.new
       allow(District).to receive(:find_by_address).and_return(district)
 
-      location.fill_in_missing_attributes
+      location.set_missing_attributes
 
       expect(location.district).to eq district
       expect(District).to have_received(:find_by_address).

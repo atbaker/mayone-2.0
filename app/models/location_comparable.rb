@@ -9,7 +9,7 @@ class LocationComparable < Location
   end
 
   def similar_to?(location)
-    other_address = location.tap(&:fill_in_state).address_data
+    other_address = location.tap(&:set_state).address_data
     intersection = address_data.compact.keys & other_address.compact.keys
     address_data.slice(*intersection) == other_address.slice(*intersection)
   end

@@ -43,13 +43,13 @@ class PersonConstructor
     if location_params.any?
       new_location = LocationComparable.new(location_params)
       person.location.becomes(LocationComparable).merge(new_location)
-      person.location.fill_in_missing_attributes
+      person.location.set_missing_attributes
     end
   end
 
   def normalize_params
     flatten_remote_fields
-    rename_keys
+    normalize_keys
     strip_whitespace_from_values
   end
 
@@ -61,13 +61,13 @@ class PersonConstructor
     params.merge!(params){ |k, v1| v1.try(:strip) || v1 }
   end
 
-  def rename_keys
-    renameable_keys.each do |key|
+  def normalize_keys
+    mapped_keys.each do |key|
       params[ KEY_NAME_MAPPINGS[key] ] = params.delete(key)
     end
   end
 
-  def renameable_keys
+  def mapped_keys
     params.keys & KEY_NAME_MAPPINGS.keys
   end
 

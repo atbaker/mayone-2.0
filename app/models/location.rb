@@ -38,18 +38,18 @@ class Location < ActiveRecord::Base
     self.state = State.find_by(abbrev: abbrev)
   end
 
-  def fill_in_missing_attributes
-    fill_in_state
-    fill_in_district
+  def set_missing_attributes
+    set_state
+    set_district
   end
 
-  def fill_in_state
+  def set_state
     self.state_id ||= find_zip_code.try(:state_id)
   end
 
   private
 
-  def fill_in_district
+  def set_district
     self.district ||= find_district_by_zip || find_district_by_address
   end
 
