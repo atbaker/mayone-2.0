@@ -6,8 +6,7 @@ describe V1::GoogleFormsController,  type: :controller do
     before do
       person = double('person', save: true)
       allow(person).to receive(:valid?).and_return(true)
-      constructor = double('constructor', build: person)
-      allow(PersonConstructor).to receive(:new).and_return(constructor)
+      allow(PersonConstructor).to receive(:build).and_return(person)
       allow(GoogleFormsSubmitJob).to receive(:perform_later)
 
       @google_form_submission_data = {attribute_one: 'first_attribute', attribute_two: 'second_attribute'}
@@ -27,7 +26,7 @@ describe V1::GoogleFormsController,  type: :controller do
           google_form_metadata: @google_form_metadata,
           google_form_submission_data: @google_form_submission_data
 
-        expect(PersonConstructor).to have_received(:new).with(email: fake_email)
+        expect(PersonConstructor).to have_received(:build).with(email: fake_email)
         expect(GoogleFormsSubmitJob).to have_received(:perform_later).with(
           @google_form_metadata[:form_id],
           {
