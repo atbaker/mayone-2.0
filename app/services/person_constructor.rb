@@ -15,15 +15,11 @@ class PersonConstructor
       OLD_REMOTE_PARAMS
   end
 
-  def initialize(params)
-    @params = params.deep_symbolize_keys
-    normalize_params
-  end
-
-  def build
-    person = find_or_initialize_person_with_remote_fields
-    person.assign_attributes(person_params)
-    assign_location_attributes(person)
+  def self.build(params)
+    normalized_params = normalize_params(params)
+    person = find_or_initialize_person_with_remote_fields(normalized_params)
+    person.assign_attributes(person_fields(normalized_params))
+    assign_location_attributes(person, location_fields(normalized_params))
     person
   end
 
@@ -31,7 +27,7 @@ class PersonConstructor
 
   attr_reader :params
 
-  def find_or_initialize_person_with_remote_fields
+  def self.find_or_initialize_person_with_remote_fields(params)
     if person = PersonFinder.new(params).find
       person.becomes(PersonWithRemoteFields)
     else
@@ -39,7 +35,7 @@ class PersonConstructor
     end
   end
 
-  def assign_location_attributes(person)
+  def self.assign_location_attributes(person, location_params)
     if location_params.any?
       new_location = LocationComparable.new(location_params)
       person.location.becomes(LocationComparable).merge(new_location)
@@ -47,35 +43,33 @@ class PersonConstructor
     end
   end
 
-  def normalize_params
-    flatten_remote_fields
-    normalize_keys
-    strip_whitespace_from_values
+  def self.normalize_params(params)
+    strip_whitespace_from_values(
+      normalize_keys(
+        flatten_remote_fields(
+          params.deep_symbolize_keys
+        )
+      )
+    )
   end
 
-  def flatten_remote_fields
-    params.merge!(params.delete(:remote_fields) || {})
+  def self.flatten_remote_fields(params)
+    params.except(:remote_fields).merge(params[:remote_fields] || {})
   end
 
-  def strip_whitespace_from_values
-    params.merge!(params){ |k, v1| v1.try(:strip) || v1 }
+  def self.strip_whitespace_from_values(params)
+    params.map { |k, v| [k, v.try(:strip) || v] }.to_h
   end
 
-  def normalize_keys
-    mapped_keys.each do |key|
-      params[ KEY_NAME_MAPPINGS[key] ] = params.delete(key)
-    end
+  def self.normalize_keys(params)
+    params.map { |k, v| [KEY_NAME_MAPPINGS[k] || k, v] }.to_h
   end
 
-  def mapped_keys
-    params.keys & KEY_NAME_MAPPINGS.keys
-  end
-
-  def person_params
+  def self.person_fields(params)
     params.slice(*PersonWithRemoteFields::ALL_FIELDS)
   end
 
-  def location_params
+  def self.location_fields(params)
     params.slice(*Location::PERMITTED_PARAMS)
   end
 end

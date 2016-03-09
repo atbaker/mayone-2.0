@@ -1,7 +1,7 @@
 class V1::PeopleController < V1::BaseController
 
   def create
-    @person = PersonConstructor.new(person_params).build
+    @person = PersonConstructor.build(person_params)
     if @person.save
       if template_ids = params[:actions].presence
         @person.mark_activities_completed(template_ids)
@@ -19,7 +19,7 @@ class V1::PeopleController < V1::BaseController
   end
 
   def targets
-    @person = PersonConstructor.new(person_params).build.tap(&:save) # temporary fix
+    @person = PersonConstructor.build(person_params).tap(&:save) # temporary fix
     if @person.valid?
       render
     else

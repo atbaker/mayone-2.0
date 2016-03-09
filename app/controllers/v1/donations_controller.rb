@@ -15,7 +15,7 @@ class V1::DonationsController < V1::BaseController
   #  * utm_campaign - action utm_campaign
   #  * source_url - action source_url
   def create
-    person = PersonConstructor.new(person_params).build.tap(&:save) # temporary fix
+    person = PersonConstructor.build(person_params).tap(&:save) # temporary fix
     donation = Donation.new(donation_params.merge(person: person))
     if donation.process
       render json: { status: 'success' }

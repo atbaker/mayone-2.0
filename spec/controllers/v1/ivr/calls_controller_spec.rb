@@ -12,8 +12,7 @@ describe V1::Ivr::CallsController,  type: :controller do
       allow(@person).to receive(:create_action)
       allow(@person).to receive_message_chain(:calls, :create).and_return(call)
       allow(@person).to receive_message_chain(:phone).and_return(@target_phone)
-      constructor = double('constructor', build: @person)
-      allow(PersonConstructor).to receive(:new).and_return(constructor)
+      allow(PersonConstructor).to receive(:build).and_return(@person)
 
       twilio_call = double('twilio_call')
       allow(twilio_call).to receive(:sid).and_return(@fake_sid)

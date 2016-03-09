@@ -6,7 +6,7 @@ describe PersonConstructor do
       params = { email: 'email' }
       stub_person_finder(params)
 
-      new_person = PersonConstructor.new(params).build
+      new_person = PersonConstructor.build(params)
 
       expect(new_person).to be_a PersonWithRemoteFields
     end
@@ -15,7 +15,7 @@ describe PersonConstructor do
       params = { email: 'email' }
       found_person = stub_person_finder(params)
 
-      new_person = PersonConstructor.new(params).build
+      new_person = PersonConstructor.build(params)
 
       expect(new_person.id).to eq found_person.id
     end
@@ -25,7 +25,7 @@ describe PersonConstructor do
       stub_person_finder(params, found: false)
       expected_person = stub_new_person_with_remote_fields
 
-      new_person = PersonConstructor.new(params).build
+      new_person = PersonConstructor.build(params)
 
       expect(new_person).to eq expected_person
     end
@@ -34,7 +34,7 @@ describe PersonConstructor do
       params = { first_name: 'name', occupation: 'work' }
       stub_person_finder(params)
 
-      person = PersonConstructor.new(params).build
+      person = PersonConstructor.build(params)
 
       expect(person.first_name).to eq 'name'
       expect(person.occupation).to eq 'work'
@@ -45,7 +45,7 @@ describe PersonConstructor do
       expected_params = { first_name: 'name', occupation: 'work' }
       stub_person_finder(expected_params)
 
-      person = PersonConstructor.new(params).build
+      person = PersonConstructor.build(params)
 
       expect(person.first_name).to eq 'name'
       expect(person.occupation).to eq 'work'
@@ -55,7 +55,7 @@ describe PersonConstructor do
       params = { city: 'city' }
       stub_person_finder(params)
 
-      person = PersonConstructor.new(params).build
+      person = PersonConstructor.build(params)
 
       expect(person.location.city).to eq 'city'
     end

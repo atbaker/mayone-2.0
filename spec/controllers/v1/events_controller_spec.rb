@@ -21,8 +21,7 @@ describe V1::EventsController,  type: :controller do
         @activity = FactoryGirl.create(:activity, template_id: Activity::DEFAULT_TEMPLATE_IDS[:rsvp])
         @person = FactoryGirl.build(:person)
         allow(@person).to receive(:create_action)
-        constructor = double('constructor', build: @person)
-        allow(PersonConstructor).to receive(:new).and_return(constructor)
+        allow(PersonConstructor).to receive(:build).and_return(@person)
       end
 
       it "returns success" do
@@ -59,7 +58,8 @@ describe V1::EventsController,  type: :controller do
           person: person_params
         }
 
-        expect(PersonConstructor).to have_received(:new)
+        expect(Integration::NationBuilder).to have_received(:create_person_and_rsvp).
+          with(event_id: '5', person_attributes: @person.attributes.symbolize_keys)
       end
     end
     context "with missing person parameters" do

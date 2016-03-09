@@ -12,7 +12,7 @@ class V1::GoogleFormsController < V1::BaseController
   #    Google's servers infer type.
   #    example: {javascript_skill_level: 'advanced', legislator_nominatoin: 'Jack Russel'}
   def create
-    person = PersonConstructor.new(person_params).build.tap(&:save) # temporary fix
+    person = PersonConstructor.build(person_params).tap(&:save) # temporary fix
     if google_form_data_params.values.any?(&:present?) || (person && person.valid?)
       GoogleFormsSubmitJob.perform_later(google_form_metadata_params[:form_id], google_form_mapped_data)
       submitted = true
