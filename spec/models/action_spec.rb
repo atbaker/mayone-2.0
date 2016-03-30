@@ -22,7 +22,7 @@ describe Action do
   it { should validate_presence_of(:activity) }
 
   describe 'scopes' do
-    before(:all) do
+    before(:each) do
       @main_activity = FactoryGirl.create(:activity)
       FactoryGirl.create_list(:action, 3, activity: @main_activity)
       Timecop.freeze(4.days.ago) do
