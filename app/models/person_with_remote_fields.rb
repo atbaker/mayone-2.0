@@ -7,12 +7,11 @@ class PersonWithRemoteFields < Person
 
   attr_accessor *REMOTE_FIELDS
 
-
   def save(args = {})
     if valid?
       update_remote
     end
-    super # will try to save location, but won't complain if it can't
+    super
   end
 
   def params_for_remote_update
@@ -61,7 +60,7 @@ class PersonWithRemoteFields < Person
   end
 
   def location_params
-    if (location.changed & Location::ADDRESS_FIELDS.map(&:to_s)).any?
+    if location && (location.changed & Location::ADDRESS_FIELDS.map(&:to_s)).any?
       location.as_json  # maybe dangerous to reuse serializable_hash here?
     else
       {}

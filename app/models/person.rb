@@ -30,6 +30,8 @@ class Person < ActiveRecord::Base
   has_many :actions, dependent: :destroy
   has_many :activities, through: :actions
 
+  validates_associated :location
+
   validates :email, uniqueness: { case_sensitive: false },
     email_format: { message: 'is invalid' },
     allow_nil: true
@@ -46,9 +48,6 @@ class Person < ActiveRecord::Base
     .where('email = :identifier OR uuid = :identifier OR phone = :identifier', identifier: identifier)
   }
 
-  alias_method :location_association, :location
-  delegate :district, :state, to: :location
-
   DEFAULT_TARGET_COUNT = 100
   PERMITTED_PARAMS = [:email, :phone, :first_name, :last_name, :is_volunteer]
 
@@ -58,8 +57,8 @@ class Person < ActiveRecord::Base
     SecureRandom.uuid
   end
 
-  def location
-    location_association || build_location
+  def guaranteed_location
+    location || build_location
   end
 
   def mark_activities_completed(template_ids)

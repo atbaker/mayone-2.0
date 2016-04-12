@@ -40,7 +40,7 @@ describe PersonWithRemoteFields do
 
     it "includes location attributes" do
       person = PersonWithRemoteFields.new
-      person.location.zip_code = '01111'
+      person.guaranteed_location.zip_code = '01111'
 
       params = person.params_for_remote_update
 
@@ -59,7 +59,7 @@ describe PersonWithRemoteFields do
     it "converts state to string" do
       person = PersonWithRemoteFields.new
       state = create(:state)
-      person.location.state = state
+      person.guaranteed_location.state = state
 
       params = person.params_for_remote_update
 

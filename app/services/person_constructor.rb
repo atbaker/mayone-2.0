@@ -46,7 +46,7 @@ class PersonConstructor
   def assign_location_attributes(person)
     if location_params.any?
       new_location = LocationComparable.new(location_params)
-      person.location.becomes(LocationComparable).merge(new_location)
+      person.guaranteed_location.becomes(LocationComparable).merge(new_location)
       person.location.set_missing_attributes
     end
   end
